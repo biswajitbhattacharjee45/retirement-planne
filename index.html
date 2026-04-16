@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
 :root {
   --bg: #070c14;
@@ -320,12 +321,267 @@ button{font-family:'DM Sans',sans-serif;cursor:pointer}
 .comp-table th,.comp-table td{padding:.45rem .6rem;text-align:left;border-bottom:1px dashed var(--border);font-size:.74rem}
 .comp-table th{font-size:.62rem;color:var(--text-sub);text-transform:uppercase;letter-spacing:.08em;font-weight:600}
 
-/* Slab table */
+/* ── Slab table */
 .slab-row{display:flex;justify-content:space-between;padding:.38rem 0;border-bottom:1px dashed var(--border);font-size:.74rem}
 .slab-highlight{background:rgba(200,164,90,.06);border-radius:6px;padding:.38rem .6rem;margin:-.38rem -.6rem}
+
+/* ══════════════════════════════
+   ONBOARDING SCREEN
+══════════════════════════════ */
+#onboarding-overlay{
+  position:fixed;inset:0;z-index:9999;
+  background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  overflow-y:auto;padding:1.5rem;
+}
+.ob-card{
+  width:100%;max-width:480px;
+  background:linear-gradient(145deg,#0d1a2a,#091018);
+  border:1px solid var(--border2);border-radius:24px;
+  padding:2.2rem 2rem;position:relative;overflow:hidden;
+}
+.ob-card::before{
+  content:'';position:absolute;top:-60px;right:-60px;
+  width:220px;height:220px;border-radius:50%;
+  background:radial-gradient(circle,rgba(200,164,90,.12) 0%,transparent 70%);
+  pointer-events:none;
+}
+.ob-card::after{
+  content:'';position:absolute;bottom:-40px;left:-40px;
+  width:160px;height:160px;border-radius:50%;
+  background:radial-gradient(circle,rgba(46,196,160,.08) 0%,transparent 70%);
+  pointer-events:none;
+}
+.ob-logo-brand{font-size:.65rem;color:var(--gold);letter-spacing:.22em;text-transform:uppercase;margin-bottom:.3rem;text-align:center}
+.ob-logo-title{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:900;color:#fff;text-align:center;line-height:1.2;margin-bottom:.3rem}
+.ob-logo-sub{font-size:.78rem;color:var(--text-sub);text-align:center;margin-bottom:1.8rem;line-height:1.5}
+.ob-divider{width:40px;height:2px;background:linear-gradient(90deg,var(--gold-dk),var(--gold));border-radius:2px;margin:.8rem auto 1.8rem}
+.ob-input-group{margin-bottom:1.1rem}
+.ob-label{font-size:.7rem;color:var(--text-sub);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.4rem;display:block}
+.ob-input{
+  width:100%;padding:.75rem 1rem;
+  background:rgba(255,255,255,.04);
+  border:1.5px solid var(--border2);border-radius:12px;
+  color:var(--text);font-size:.9rem;font-family:'DM Sans';
+  outline:none;transition:border-color .2s,box-shadow .2s;
+}
+.ob-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(200,164,90,.12)}
+.ob-input::placeholder{color:var(--muted)}
+.ob-input-icon{position:relative}
+.ob-input-icon .ob-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:.95rem;pointer-events:none}
+.ob-input-icon .ob-input{padding-left:2.4rem}
+.ob-btn{
+  width:100%;padding:1rem;margin-top:1.2rem;
+  background:linear-gradient(135deg,var(--gold-dk),var(--gold),var(--gold-lt));
+  color:#080c12;font-weight:800;border:none;border-radius:14px;
+  font-size:1rem;font-family:'Playfair Display',serif;letter-spacing:.04em;
+  cursor:pointer;transition:.25s;position:relative;overflow:hidden;
+}
+.ob-btn:hover{filter:brightness(1.08);transform:translateY(-2px);box-shadow:0 10px 30px rgba(200,164,90,.35)}
+.ob-btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.ob-btn-ghost{
+  width:100%;padding:.7rem;margin-top:.6rem;
+  background:transparent;border:1px solid var(--border2);
+  color:var(--text-sub);font-size:.82rem;border-radius:12px;cursor:pointer;transition:.2s;
+}
+.ob-btn-ghost:hover{border-color:var(--gold);color:var(--text)}
+.ob-error{font-size:.72rem;color:var(--rose);margin-top:.4rem;display:none}
+.ob-success-msg{font-size:.74rem;color:var(--mint);margin-top:.5rem;text-align:center;display:none}
+.ob-footer{font-size:.64rem;color:var(--muted);text-align:center;margin-top:1.2rem;line-height:1.6}
+
+/* Email sending status */
+.email-status{
+  display:none;align-items:center;gap:.5rem;
+  font-size:.74rem;padding:.5rem .8rem;border-radius:8px;
+  margin-top:.6rem;
+}
+.email-status.sending{display:flex;background:rgba(78,168,224,.1);border:1px solid rgba(78,168,224,.3);color:var(--sky)}
+.email-status.sent{display:flex;background:rgba(61,214,140,.1);border:1px solid rgba(61,214,140,.3);color:var(--mint)}
+.email-status.failed{display:flex;background:rgba(232,85,106,.1);border:1px solid rgba(232,85,106,.3);color:var(--rose)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{animation:spin .8s linear infinite;display:inline-block}
+
+/* ══════════════════════════════
+   USER PANEL (sidebar bottom)
+══════════════════════════════ */
+.user-chip{
+  display:flex;align-items:center;gap:.6rem;
+  padding:.7rem 1rem;margin:.5rem .6rem;
+  background:rgba(200,164,90,.07);border:1px solid rgba(200,164,90,.18);
+  border-radius:12px;cursor:pointer;transition:.2s;
+}
+.user-chip:hover{background:rgba(200,164,90,.12)}
+.user-avatar{
+  width:34px;height:34px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--gold-dk),var(--gold));
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Playfair Display',serif;font-size:.95rem;font-weight:700;color:#080c12;
+}
+.user-info{flex:1;min-width:0}
+.user-name{font-size:.78rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-email{font-size:.62rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* User manager modal */
+#user-modal{
+  display:none;position:fixed;inset:0;z-index:9998;
+  background:rgba(0,0,0,.7);backdrop-filter:blur(6px);
+  align-items:center;justify-content:center;padding:1.5rem;
+}
+#user-modal.open{display:flex}
+.um-card{
+  width:100%;max-width:520px;max-height:85vh;overflow-y:auto;
+  background:var(--card);border:1px solid var(--border2);border-radius:20px;padding:1.5rem;
+}
+.um-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem}
+.um-title{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:var(--gold)}
+.um-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.2rem;padding:.2rem}
+.um-user-row{
+  display:flex;align-items:center;gap:.7rem;
+  padding:.75rem;border-radius:12px;margin-bottom:.5rem;
+  background:var(--surface);border:1px solid var(--border);
+  cursor:pointer;transition:.2s;
+}
+.um-user-row:hover{border-color:var(--gold);background:rgba(200,164,90,.06)}
+.um-user-row.active-user{border-color:var(--teal);background:rgba(46,196,160,.06)}
+.um-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:#080c12;flex-shrink:0}
+.um-info{flex:1}
+.um-uname{font-size:.82rem;font-weight:600;color:var(--text)}
+.um-uemail{font-size:.68rem;color:var(--muted)}
+.um-umeta{font-size:.65rem;color:var(--text-sub);margin-top:.1rem}
+.um-actions{display:flex;gap:.4rem}
+.um-del{background:rgba(232,85,106,.1);border:1px solid rgba(232,85,106,.25);color:var(--rose);padding:.3rem .55rem;border-radius:7px;font-size:.65rem;cursor:pointer;transition:.2s}
+.um-del:hover{background:rgba(232,85,106,.2)}
+.um-switch{background:rgba(200,164,90,.1);border:1px solid rgba(200,164,90,.25);color:var(--gold);padding:.3rem .55rem;border-radius:7px;font-size:.65rem;cursor:pointer;transition:.2s}
+.um-switch:hover{background:rgba(200,164,90,.2)}
+
 </style>
 </head>
 <body>
+<!-- ══════════════════════════════════
+     ONBOARDING SCREEN
+══════════════════════════════════ -->
+<div id="onboarding-overlay">
+  <div class="ob-card fu">
+    <div class="ob-logo-brand">MoneyWise Banker</div>
+    <div class="ob-logo-title">Retirement Planner<br><span style="color:var(--gold)">Pro</span></div>
+    <div class="ob-logo-sub">India's most comprehensive retirement planning tool.<br>Personalised for you. Free forever.</div>
+    <div class="ob-divider"></div>
+
+    <div style="font-size:.72rem;color:var(--text-sub);text-align:center;margin-bottom:1.2rem">
+      Please fill your details to get started — we'll personalise your plan and send you a summary.
+    </div>
+
+    <div class="ob-input-group">
+      <label class="ob-label">Full Name *</label>
+      <div class="ob-input-icon">
+        <span class="ob-icon">👤</span>
+        <input class="ob-input" id="ob-name" type="text" placeholder="e.g. Biswajit Bhattacharjee" maxlength="60" oninput="obValidate()">
+      </div>
+      <div class="ob-error" id="ob-name-err">Please enter your full name.</div>
+    </div>
+
+    <div class="ob-input-group">
+      <label class="ob-label">Mobile Number *</label>
+      <div class="ob-input-icon">
+        <span class="ob-icon">📱</span>
+        <input class="ob-input" id="ob-phone" type="tel" placeholder="10-digit mobile number" maxlength="10" oninput="obValidate()" onkeypress="return /[0-9]/.test(event.key)">
+      </div>
+      <div class="ob-error" id="ob-phone-err">Please enter a valid 10-digit mobile number.</div>
+    </div>
+
+    <div class="ob-input-group">
+      <label class="ob-label">Email Address *</label>
+      <div class="ob-input-icon">
+        <span class="ob-icon">✉️</span>
+        <input class="ob-input" id="ob-email" type="email" placeholder="your@email.com" oninput="obValidate()">
+      </div>
+      <div class="ob-error" id="ob-email-err">Please enter a valid email address.</div>
+    </div>
+
+    <div class="ob-input-group">
+      <label class="ob-label">City / Organisation <span style="color:var(--muted)">(optional)</span></label>
+      <div class="ob-input-icon">
+        <span class="ob-icon">🏢</span>
+        <input class="ob-input" id="ob-org" type="text" placeholder="e.g. SBI, Guwahati" maxlength="60">
+      </div>
+    </div>
+
+    <button class="ob-btn" id="ob-submit-btn" onclick="obSubmit()" disabled>
+      <span id="ob-btn-txt">✨ Start My Personalised Plan</span>
+    </button>
+
+    <div class="email-status" id="ob-email-status">
+      <span id="ob-status-icon">⏳</span>
+      <span id="ob-status-txt">Sending welcome email…</span>
+    </div>
+    <div class="ob-success-msg" id="ob-success-msg">
+      ✅ Welcome email sent to your inbox!
+    </div>
+
+    <button class="ob-btn-ghost" onclick="obSkip()">Skip & Continue without Email →</button>
+
+    <!-- ── Credit Block ── -->
+    <div style="margin-top:1.4rem;padding-top:1.2rem;border-top:1px solid var(--border2);position:relative;z-index:1">
+
+      <!-- Creator card -->
+      <div style="display:flex;align-items:center;gap:.9rem;background:rgba(200,164,90,.06);border:1px solid rgba(200,164,90,.18);border-radius:14px;padding:.9rem 1rem;margin-bottom:.9rem">
+        <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#8a6d30,#c8a45a,#e2c07e);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:900;color:#080c12;flex-shrink:0">BB</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:.82rem;font-weight:700;color:var(--gold);font-family:'Playfair Display',serif">Biswajit Bhattacharjee</div>
+          <div style="font-size:.67rem;color:var(--text-sub);margin-top:.1rem">Chief Manager (Liaison) · State Bank of India</div>
+          <div style="font-size:.64rem;color:var(--muted);margin-top:.08rem">LHO Guwahati · 30+ Years Banking Experience</div>
+        </div>
+        <div style="flex-shrink:0;text-align:center">
+          <div style="font-size:1.3rem">🏦</div>
+        </div>
+      </div>
+
+      <!-- Brand row -->
+      <div style="text-align:center;margin-bottom:.8rem">
+        <div style="font-size:.62rem;color:var(--muted);letter-spacing:.18em;text-transform:uppercase;margin-bottom:.25rem">Powered by</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;background:linear-gradient(90deg,var(--gold-dk),var(--gold),var(--gold-lt));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">MoneyWise Banker</div>
+        <div style="font-size:.63rem;color:var(--muted);margin-top:.18rem">Personal Finance · Retirement Planning · Tax Strategy</div>
+      </div>
+
+      <!-- Feature badges -->
+      <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:.35rem;margin-bottom:.9rem">
+        <span style="background:rgba(46,196,160,.1);border:1px solid rgba(46,196,160,.25);color:var(--teal);font-size:.6rem;padding:.2rem .55rem;border-radius:20px;font-weight:600">✓ FY 2024-25 Tax</span>
+        <span style="background:rgba(200,164,90,.1);border:1px solid rgba(200,164,90,.25);color:var(--gold);font-size:.6rem;padding:.2rem .55rem;border-radius:20px;font-weight:600">✓ 30+ Yr Expertise</span>
+        <span style="background:rgba(78,168,224,.1);border:1px solid rgba(78,168,224,.25);color:var(--sky);font-size:.6rem;padding:.2rem .55rem;border-radius:20px;font-weight:600">✓ Multi-User</span>
+        <span style="background:rgba(149,128,245,.1);border:1px solid rgba(149,128,245,.25);color:var(--lavender);font-size:.6rem;padding:.2rem .55rem;border-radius:20px;font-weight:600">✓ Scenario Analysis</span>
+        <span style="background:rgba(61,214,140,.1);border:1px solid rgba(61,214,140,.25);color:var(--mint);font-size:.6rem;padding:.2rem .55rem;border-radius:20px;font-weight:600">✓ Free Forever</span>
+      </div>
+
+      <!-- Privacy & disclaimer -->
+      <div style="font-size:.62rem;color:var(--muted);text-align:center;line-height:1.7">
+        🔒 <strong style="color:var(--text-sub)">Privacy First</strong> — All data stays on your device only.<br>
+        Nothing is sent to any server. No tracking. No ads.<br>
+        <span style="color:rgba(58,82,106,.7)">For informational purposes only · Consult a SEBI-registered advisor</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     USER MANAGER MODAL
+══════════════════════════════════ -->
+<div id="user-modal">
+  <div class="um-card">
+    <div class="um-header">
+      <div class="um-title">👥 User Profiles</div>
+      <button class="um-close" onclick="closeUserModal()">✕</button>
+    </div>
+    <div style="font-size:.73rem;color:var(--text-sub);margin-bottom:1rem">
+      Switch between profiles or add a new user. Each user's data is saved separately on this device.
+    </div>
+    <div id="um-user-list"></div>
+    <div class="divider"></div>
+    <button class="btn-gold" onclick="closeUserModal();showOnboarding()" style="margin-top:.5rem;padding:.75rem">
+      + Add New User
+    </button>
+  </div>
+</div>
+
 <div id="app">
 
 <!-- ══ SIDEBAR ══ -->
@@ -357,6 +613,17 @@ button{font-family:'DM Sans',sans-serif;cursor:pointer}
     <a class="nav-item" data-page="scenarios" onclick="showPage('scenarios',this)">
       <span class="nav-icon">🔭</span> Scenarios
     </a>
+    <div class="nav-section">Account</div>
+    <a class="nav-item" onclick="openUserModal()">
+      <span class="nav-icon">👥</span> Switch User
+    </a>
+  </div>
+  <div class="user-chip" onclick="openUserModal()" id="sidebar-user-chip">
+    <div class="user-avatar" id="sidebar-avatar">?</div>
+    <div class="user-info">
+      <div class="user-name" id="sidebar-name">No user</div>
+      <div class="user-email" id="sidebar-email">Click to set up</div>
+    </div>
   </div>
   <div class="sidebar-footer">
     Calculations based on FY 2024-25 tax slabs.<br>Consult a SEBI-registered advisor.
@@ -371,7 +638,7 @@ button{font-family:'DM Sans',sans-serif;cursor:pointer}
       <button id="hamburger" onclick="toggleSidebar()">☰</button>
       <div>
         <div class="topbar-title" id="page-title">Dashboard</div>
-        <div class="topbar-sub" id="page-sub">Your retirement overview</div>
+        <div class="topbar-sub" id="page-sub">Welcome, <span id="topbar-username" style="color:var(--gold)">User</span></div>
       </div>
     </div>
     <div class="readiness-chip">
@@ -400,6 +667,29 @@ button{font-family:'DM Sans',sans-serif;cursor:pointer}
           <div style="display:flex;justify-content:space-between;margin-top:.3rem">
             <span style="font-size:.62rem;color:var(--muted)">0%</span>
             <span style="font-size:.62rem;color:var(--muted)">100%</span>
+          </div>
+          <!-- Send Report Button -->
+          <div style="margin-top:1rem;display:flex;gap:.6rem;flex-wrap:wrap">
+            <button onclick="sendReportEmail()" id="send-report-btn" style="
+              flex:1;padding:.6rem 1rem;min-width:140px;
+              background:linear-gradient(135deg,rgba(200,164,90,.15),rgba(200,164,90,.08));
+              border:1px solid rgba(200,164,90,.35);border-radius:10px;
+              color:var(--gold);font-size:.76rem;font-weight:700;cursor:pointer;
+              display:flex;align-items:center;justify-content:center;gap:.4rem;transition:.2s;
+            " onmouseenter="this.style.background='rgba(200,164,90,.2)'" onmouseleave="this.style.background='linear-gradient(135deg,rgba(200,164,90,.15),rgba(200,164,90,.08))'">
+              <span>📧</span> <span id="send-btn-txt">Send My Report</span>
+            </button>
+            <button onclick="openUserModal()" style="
+              padding:.6rem .9rem;
+              background:rgba(255,255,255,.04);border:1px solid var(--border2);
+              border-radius:10px;color:var(--text-sub);font-size:.76rem;cursor:pointer;transition:.2s;
+            " onmouseenter="this.style.borderColor='var(--gold)'" onmouseleave="this.style.borderColor='var(--border2)'">
+              👥 Switch User
+            </button>
+          </div>
+          <div class="email-status" id="report-email-status" style="margin-top:.5rem">
+            <span id="report-status-icon"></span>
+            <span id="report-status-txt"></span>
           </div>
         </div>
       </div>
@@ -1118,6 +1408,8 @@ function render(){
   renderGoals(C);
   renderScenarios(C);
   renderConfigSummaries(C);
+  // Auto-save current user state on every render
+  saveCurrentUserState();
 }
 
 /* ── Header ── */
@@ -2056,13 +2348,376 @@ function initSliders(){
   renderBigExpList();
 }
 
-/* ── Boot ── */
-window.addEventListener('DOMContentLoaded',()=>{
+/* ════════════════════════════════════════
+   ⚙️  EMAILJS CONFIG — FILL THESE IN
+   1. Sign up free at https://emailjs.com
+   2. Create a service (Gmail recommended)
+   3. Create a template — use variables:
+      {{to_name}}, {{to_email}}, {{readiness}},
+      {{corpus}}, {{required}}, {{surplus}},
+      {{monthly_income}}, {{tax}}, {{phone}}, {{org}}
+   4. Paste your IDs below
+════════════════════════════════════════ */
+const EMAILJS_CONFIG = {
+  publicKey:   'YOUR_PUBLIC_KEY',       // From EmailJS → Account → Public Key
+  serviceId:   'YOUR_SERVICE_ID',       // From EmailJS → Email Services
+  welcomeTemplateId: 'YOUR_WELCOME_TEMPLATE_ID',  // Welcome email template
+  reportTemplateId:  'YOUR_REPORT_TEMPLATE_ID',   // Report email template
+};
+
+/* ════════════════════════════════
+   MULTI-USER STORAGE
+════════════════════════════════ */
+const USER_STORAGE_KEY = 'mwb_users_v1';
+const ACTIVE_USER_KEY  = 'mwb_active_user';
+
+function getUsers() {
+  try { return JSON.parse(localStorage.getItem(USER_STORAGE_KEY)||'[]'); }
+  catch(e){ return []; }
+}
+function saveUsers(users) {
+  localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(users));
+}
+function getActiveUserId() {
+  return localStorage.getItem(ACTIVE_USER_KEY)||null;
+}
+function setActiveUserId(id) {
+  localStorage.setItem(ACTIVE_USER_KEY, id);
+}
+
+function createUser(name, phone, email, org) {
+  const id = 'u_'+Date.now();
+  const user = {
+    id, name, phone, email, org,
+    createdAt: new Date().toLocaleDateString('en-IN'),
+    state: JSON.parse(JSON.stringify(S)), // deep copy of default state
+  };
+  const users = getUsers();
+  users.push(user);
+  saveUsers(users);
+  setActiveUserId(id);
+  return user;
+}
+
+function getActiveUser() {
+  const id = getActiveUserId();
+  return getUsers().find(u=>u.id===id)||null;
+}
+
+function loadUserState(user) {
+  // Merge saved state keys into S (keep defaults for any missing keys)
+  if(user.state) {
+    Object.keys(S).forEach(k=>{ if(user.state[k]!==undefined) S[k]=user.state[k]; });
+  }
+}
+
+function saveCurrentUserState() {
+  const id = getActiveUserId(); if(!id)return;
+  const users = getUsers();
+  const idx = users.findIndex(u=>u.id===id); if(idx<0)return;
+  users[idx].state = JSON.parse(JSON.stringify(S));
+  users[idx].lastSaved = new Date().toLocaleString('en-IN');
+  saveUsers(users);
+}
+
+function switchToUser(id) {
+  // Save current user's state first
+  saveCurrentUserState();
+  setActiveUserId(id);
+  const user = getUsers().find(u=>u.id===id);
+  if(user){ loadUserState(user); }
+  updateUserUI();
+  closeUserModal();
+  render();
   initSliders();
   render();
-  // Show dashboard initially
-  showPage('dashboard', document.querySelector('[data-page="dashboard"]'));
+}
+
+function deleteUser(id) {
+  if(!confirm('Delete this user profile? This cannot be undone.')) return;
+  const users = getUsers().filter(u=>u.id!==id);
+  saveUsers(users);
+  if(getActiveUserId()===id){
+    if(users.length){ setActiveUserId(users[0].id); loadUserState(users[0]); }
+    else{ localStorage.removeItem(ACTIVE_USER_KEY); showOnboarding(); return; }
+  }
+  updateUserUI();
+  renderUserModal();
+  render();
+}
+
+/* ── Update sidebar user chip & topbar ── */
+function updateUserUI() {
+  const user = getActiveUser();
+  if(!user) return;
+  const initials = user.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  const av=document.getElementById('sidebar-avatar');
+  const nm=document.getElementById('sidebar-name');
+  const em=document.getElementById('sidebar-email');
+  const tu=document.getElementById('topbar-username');
+  if(av) av.textContent=initials;
+  if(nm) nm.textContent=user.name;
+  if(em) em.textContent=user.email;
+  if(tu) tu.textContent=user.name.split(' ')[0];
+  // Update page greeting
+  const sub=document.getElementById('page-sub');
+  if(sub) sub.innerHTML=`Welcome, <span style="color:var(--gold)">${user.name.split(' ')[0]}</span>`;
+}
+
+/* ════════════════════════════════
+   ONBOARDING LOGIC
+════════════════════════════════ */
+function showOnboarding() {
+  const ov=document.getElementById('onboarding-overlay');
+  if(ov){ ov.style.display='flex'; ov.style.animation='fadeIn .4s ease'; }
+  // Reset form
+  ['ob-name','ob-phone','ob-email','ob-org'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  document.getElementById('ob-submit-btn').disabled=true;
+  const sm=document.getElementById('ob-success-msg');
+  const es=document.getElementById('ob-email-status');
+  if(sm) sm.style.display='none';
+  if(es) es.className='email-status';
+}
+
+function hideOnboarding() {
+  const ov=document.getElementById('onboarding-overlay');
+  if(ov){ ov.style.opacity='0'; ov.style.transition='opacity .4s'; setTimeout(()=>{ov.style.display='none';ov.style.opacity='';ov.style.transition='';},400); }
+}
+
+function obValidate() {
+  const name  = document.getElementById('ob-name').value.trim();
+  const phone = document.getElementById('ob-phone').value.trim();
+  const email = document.getElementById('ob-email').value.trim();
+  const nameOk  = name.length>=2;
+  const phoneOk = /^[6-9]\d{9}$/.test(phone);
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  document.getElementById('ob-name-err').style.display  = name&&!nameOk  ?'block':'none';
+  document.getElementById('ob-phone-err').style.display = phone&&!phoneOk?'block':'none';
+  document.getElementById('ob-email-err').style.display = email&&!emailOk?'block':'none';
+  const btn=document.getElementById('ob-submit-btn');
+  if(btn) btn.disabled = !(nameOk&&phoneOk&&emailOk);
+}
+
+async function obSubmit() {
+  const name  = document.getElementById('ob-name').value.trim();
+  const phone = document.getElementById('ob-phone').value.trim();
+  const email = document.getElementById('ob-email').value.trim();
+  const org   = document.getElementById('ob-org').value.trim();
+
+  // Create user
+  const user = createUser(name, phone, email, org);
+  updateUserUI();
+
+  // Show sending status
+  const statusEl = document.getElementById('ob-email-status');
+  const iconEl   = document.getElementById('ob-status-icon');
+  const txtEl    = document.getElementById('ob-status-txt');
+  statusEl.className='email-status sending';
+  if(iconEl) iconEl.innerHTML='<span class="spin">⏳</span>';
+  if(txtEl)  txtEl.textContent='Sending welcome email…';
+
+  // Send welcome email
+  const sent = await sendEmail('welcome', {
+    to_name:  name,
+    to_email: email,
+    phone, org: org||'—',
+    date: new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'}),
+    app_url: window.location.href,
+  });
+
+  if(sent){
+    statusEl.className='email-status sent';
+    if(iconEl) iconEl.textContent='✅';
+    if(txtEl)  txtEl.textContent='Welcome email sent to '+email;
+    const sm=document.getElementById('ob-success-msg');
+    if(sm) sm.style.display='block';
+    setTimeout(()=>{ hideOnboarding(); }, 1800);
+  } else {
+    statusEl.className='email-status failed';
+    if(iconEl) iconEl.textContent='⚠️';
+    if(txtEl)  txtEl.textContent='Email not configured yet — continuing anyway.';
+    setTimeout(()=>{ hideOnboarding(); }, 1500);
+  }
+}
+
+function obSkip() {
+  const name  = (document.getElementById('ob-name').value.trim())||'Guest User';
+  const phone = (document.getElementById('ob-phone').value.trim())||'';
+  const email = (document.getElementById('ob-email').value.trim())||'';
+  const org   = (document.getElementById('ob-org').value.trim())||'';
+  createUser(name||'Guest User', phone, email, org);
+  updateUserUI();
+  hideOnboarding();
+}
+
+/* ════════════════════════════════
+   EMAILJS — Send Email
+════════════════════════════════ */
+function initEmailJS() {
+  if(EMAILJS_CONFIG.publicKey && EMAILJS_CONFIG.publicKey!=='YOUR_PUBLIC_KEY'){
+    emailjs.init(EMAILJS_CONFIG.publicKey);
+  }
+}
+
+async function sendEmail(type, params) {
+  const templateId = type==='welcome'
+    ? EMAILJS_CONFIG.welcomeTemplateId
+    : EMAILJS_CONFIG.reportTemplateId;
+
+  if(!EMAILJS_CONFIG.publicKey||EMAILJS_CONFIG.publicKey==='YOUR_PUBLIC_KEY'||
+     !EMAILJS_CONFIG.serviceId||EMAILJS_CONFIG.serviceId==='YOUR_SERVICE_ID'||
+     !templateId||templateId.includes('YOUR_')){
+    console.warn('EmailJS not configured. Set EMAILJS_CONFIG values.');
+    return false;
+  }
+  try {
+    await emailjs.send(EMAILJS_CONFIG.serviceId, templateId, params);
+    return true;
+  } catch(e){
+    console.error('EmailJS error:',e);
+    return false;
+  }
+}
+
+async function sendReportEmail() {
+  const user = getActiveUser();
+  if(!user||!user.email){
+    alert('No email on file. Please set up your profile first.');
+    showOnboarding(); return;
+  }
+  const C = calc();
+  const btn  = document.getElementById('send-report-btn');
+  const btxt = document.getElementById('send-btn-txt');
+  const statusEl = document.getElementById('report-email-status');
+  const iconEl   = document.getElementById('report-status-icon');
+  const txtEl    = document.getElementById('report-status-txt');
+
+  if(btn) btn.disabled=true;
+  if(btxt) btxt.textContent='Sending…';
+  statusEl.className='email-status sending';
+  if(iconEl) iconEl.innerHTML='<span class="spin">⏳</span>';
+  if(txtEl)  txtEl.textContent='Preparing your retirement report…';
+
+  const params = {
+    to_name:        user.name,
+    to_email:       user.email,
+    phone:          user.phone||'—',
+    org:            user.org||'—',
+    readiness:      C.readiness+'%',
+    status:         C.onTrack?'On Track ✅':'Needs Attention ⚠️',
+    corpus:         inr(C.totalCorpus),
+    required:       inr(C.totalReq),
+    surplus:        (C.onTrack?'Surplus: +':'Shortfall: -')+inr(Math.abs(C.surplus)),
+    monthly_income: inr(Math.round(C.totalMonthly))+'/mo',
+    monthly_need:   inr(Math.round(C.inflExp))+'/mo',
+    tax:            inr(C.activeT.tax)+'/yr ('+C.effRate+'% eff.)',
+    tax_regime:     S.regime==='new'?'New Regime':'Old Regime',
+    ret_age:        S.retAge,
+    years_left:     C.yrs,
+    ret_span:       C.rYrs+' years',
+    date:           new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'}),
+    app_url:        window.location.href,
+  };
+
+  const sent = await sendEmail('report', params);
+
+  if(sent){
+    statusEl.className='email-status sent';
+    if(iconEl) iconEl.textContent='✅';
+    if(txtEl)  txtEl.textContent='Report sent to '+user.email;
+    if(btxt) btxt.textContent='📧 Report Sent!';
+    setTimeout(()=>{ if(btxt)btxt.textContent='Send My Report'; if(btn)btn.disabled=false; statusEl.className='email-status'; },4000);
+  } else {
+    statusEl.className='email-status failed';
+    if(iconEl) iconEl.textContent='⚠️';
+    if(txtEl)  txtEl.textContent='EmailJS not configured yet. See setup guide.';
+    if(btxt) btxt.textContent='📧 Send My Report';
+    if(btn) btn.disabled=false;
+    setTimeout(()=>{ statusEl.className='email-status'; },5000);
+  }
+}
+
+/* ════════════════════════════════
+   USER MODAL
+════════════════════════════════ */
+function openUserModal() {
+  renderUserModal();
+  document.getElementById('user-modal').classList.add('open');
+}
+function closeUserModal() {
+  document.getElementById('user-modal').classList.remove('open');
+}
+
+const AVATAR_COLORS = [
+  'linear-gradient(135deg,#c8a45a,#e2c07e)',
+  'linear-gradient(135deg,#2ec4a0,#3dd68c)',
+  'linear-gradient(135deg,#4ea8e0,#9580f5)',
+  'linear-gradient(135deg,#e8556a,#f5a623)',
+  'linear-gradient(135deg,#9580f5,#4ea8e0)',
+];
+
+function renderUserModal() {
+  const users = getUsers();
+  const activeId = getActiveUserId();
+  const el = document.getElementById('um-user-list');
+  if(!el) return;
+  if(users.length===0){
+    el.innerHTML='<div style="text-align:center;font-size:.78rem;color:var(--muted);padding:1.2rem">No users yet. Click "Add New User" below.</div>';
+    return;
+  }
+  el.innerHTML = users.map((u,i)=>{
+    const initials = u.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    const isActive = u.id===activeId;
+    const bg = AVATAR_COLORS[i%AVATAR_COLORS.length];
+    return `<div class="um-user-row ${isActive?'active-user':''}" onclick="switchToUser('${u.id}')">
+      <div class="um-avatar" style="background:${bg}">${initials}</div>
+      <div class="um-info">
+        <div class="um-uname">${u.name} ${isActive?'<span style="font-size:.6rem;color:var(--teal);font-weight:700">● Active</span>':''}</div>
+        <div class="um-uemail">${u.email||'No email'} ${u.phone?'· '+u.phone:''}</div>
+        <div class="um-umeta">${u.org?u.org+' · ':''} Added ${u.createdAt||'—'} ${u.lastSaved?'· Saved '+u.lastSaved:''}</div>
+      </div>
+      <div class="um-actions" onclick="event.stopPropagation()">
+        ${!isActive?`<button class="um-switch" onclick="switchToUser('${u.id}')">Switch</button>`:''}
+        <button class="um-del" onclick="deleteUser('${u.id}')">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ════════════════════════════════
+   AUTO-SAVE — every 30 seconds
+════════════════════════════════ */
+setInterval(saveCurrentUserState, 30000);
+
+/* ── Modified Boot ── */
+window.addEventListener('DOMContentLoaded',()=>{
+  initEmailJS();
+  initSliders();
+
+  // Check for existing users
+  const users = getUsers();
+  if(users.length===0){
+    // First time — show onboarding
+    showOnboarding();
+  } else {
+    // Load active user or first user
+    const activeId = getActiveUserId();
+    const user = users.find(u=>u.id===activeId)||users[0];
+    setActiveUserId(user.id);
+    loadUserState(user);
+    updateUserUI();
+    // Hide onboarding
+    const ov=document.getElementById('onboarding-overlay');
+    if(ov) ov.style.display='none';
+    // Re-init sliders with loaded state
+    initSliders();
+    render();
+    showPage('dashboard', document.querySelector('[data-page="dashboard"]'));
+  }
 });
+
 </script>
 </body>
 </html>
