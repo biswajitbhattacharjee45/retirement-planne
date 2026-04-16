@@ -1,0 +1,2068 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MoneyWise Banker — Retirement Planner Pro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #070c14;
+  --surface: #0c1420;
+  --card: #101a28;
+  --card2: #141f30;
+  --border: #1a2840;
+  --border2: #203050;
+  --gold: #c8a45a;
+  --gold-lt: #e2c07e;
+  --gold-dk: #8a6d30;
+  --teal: #2ec4a0;
+  --rose: #e8556a;
+  --sky: #4ea8e0;
+  --lavender: #9580f5;
+  --amber: #f5a623;
+  --mint: #3dd68c;
+  --muted: #3a526a;
+  --text: #ccdae8;
+  --text-sub: #6a8aa8;
+  --sidebar-w: 220px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;height:100%}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:9px}
+input[type=range]{-webkit-appearance:none;appearance:none;height:4px;border-radius:9px;outline:none;cursor:pointer;transition:.15s}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#fff;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.8);border:2px solid var(--gold);transition:.15s transform}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3);box-shadow:0 0 0 6px rgba(200,164,90,.15)}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:#fff;border:2px solid var(--gold);cursor:pointer}
+input[type=text],input[type=number]{font-family:'DM Sans',sans-serif}
+button{font-family:'DM Sans',sans-serif;cursor:pointer}
+
+/* ── Animations ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes countUp{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes glow{0%,100%{box-shadow:0 0 12px rgba(200,164,90,.2)}50%{box-shadow:0 0 28px rgba(200,164,90,.45)}}
+.fu{animation:fadeUp .5s ease both}
+.fi{animation:fadeIn .4s ease both}
+
+/* ── Layout ── */
+#app{display:flex;min-height:100vh}
+#sidebar{
+  width:var(--sidebar-w);flex-shrink:0;
+  background:linear-gradient(180deg,#0a1522 0%,#070c14 100%);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  position:fixed;top:0;left:0;height:100vh;
+  z-index:100;transition:transform .3s ease;
+  overflow-y:auto;
+}
+#main{margin-left:var(--sidebar-w);flex:1;min-height:100vh;transition:margin .3s}
+
+/* ── Sidebar ── */
+.sidebar-logo{padding:1.6rem 1.2rem 1rem;border-bottom:1px solid var(--border)}
+.logo-brand{font-size:.6rem;color:var(--gold);letter-spacing:.22em;text-transform:uppercase;margin-bottom:.2rem}
+.logo-title{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:#fff;line-height:1.2}
+.logo-sub{font-size:.65rem;color:var(--muted);margin-top:.15rem}
+.sidebar-nav{padding:.8rem 0;flex:1}
+.nav-section{font-size:.55rem;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;padding:.6rem 1.2rem .3rem;margin-top:.3rem}
+.nav-item{
+  display:flex;align-items:center;gap:.7rem;
+  padding:.62rem 1.2rem;margin:.08rem .6rem;
+  border-radius:10px;cursor:pointer;
+  font-size:.8rem;font-weight:500;color:var(--text-sub);
+  transition:all .2s;border:1px solid transparent;
+  text-decoration:none;
+}
+.nav-item:hover{background:rgba(200,164,90,.08);color:var(--text);border-color:rgba(200,164,90,.12)}
+.nav-item.active{background:linear-gradient(135deg,rgba(200,164,90,.18),rgba(200,164,90,.08));color:var(--gold);border-color:rgba(200,164,90,.25);font-weight:600}
+.nav-icon{font-size:1rem;width:20px;text-align:center;flex-shrink:0}
+.nav-badge{margin-left:auto;font-size:.6rem;background:var(--rose);color:#fff;padding:.1rem .4rem;border-radius:20px;font-weight:700}
+
+.sidebar-footer{padding:.9rem 1.2rem;border-top:1px solid var(--border);font-size:.65rem;color:var(--muted);line-height:1.5}
+
+/* ── Top bar ── */
+#topbar{
+  background:rgba(7,12,20,.9);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  padding:.85rem 1.5rem;
+  position:sticky;top:0;z-index:50;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.topbar-title{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:#fff}
+.topbar-sub{font-size:.7rem;color:var(--text-sub);margin-top:.1rem}
+.readiness-chip{
+  display:flex;align-items:center;gap:.6rem;
+  background:rgba(200,164,90,.08);border:1px solid rgba(200,164,90,.2);
+  padding:.45rem .9rem;border-radius:20px;
+}
+.readiness-label{font-size:.65rem;color:var(--text-sub)}
+.readiness-val{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700}
+
+/* ── Page content ── */
+.page{padding:1.5rem;display:none;animation:fadeIn .35s ease}
+.page.active{display:block}
+
+/* ── Section headers ── */
+.section-header{
+  display:flex;align-items:center;gap:.6rem;
+  margin-bottom:1.1rem;padding-bottom:.7rem;
+  border-bottom:1px solid var(--border);
+}
+.section-icon{font-size:1.1rem}
+.section-title{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;letter-spacing:.02em}
+
+/* ── Cards ── */
+.card{
+  background:var(--card);border:1px solid var(--border);border-radius:16px;
+  transition:transform .2s,box-shadow .2s;overflow:hidden;
+}
+.card:hover{transform:translateY(-1px);box-shadow:0 8px 32px rgba(0,0,0,.35)}
+.card-inner{background:var(--card2);border:1px solid var(--border2);border-radius:12px}
+.card-pad{padding:1.2rem 1.3rem}
+.mb1{margin-bottom:1rem}
+
+/* ── Stat cards ── */
+.stat-card{
+  background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:1rem 1.1rem;transition:all .25s;position:relative;overflow:hidden;
+}
+.stat-card::before{content:'';position:absolute;inset:0;border-radius:14px;opacity:0;transition:.3s;pointer-events:none}
+.stat-card:hover::before{opacity:1}
+.stat-label{font-size:.62rem;color:var(--text-sub);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.35rem}
+.stat-value{font-family:'Playfair Display',serif;font-size:1.35rem;font-weight:700;line-height:1;transition:all .3s}
+.stat-sub{font-size:.67rem;color:var(--muted);margin-top:.35rem}
+
+/* ── Grid helpers ── */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem}
+.grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:.75rem}
+.gap1{gap:1rem}
+
+/* ── Slider input component ── */
+.si-wrap{margin-bottom:1.3rem}
+.si-header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:.42rem}
+.si-label{font-size:.68rem;color:var(--text-sub);text-transform:uppercase;letter-spacing:.09em}
+.si-inr{font-size:.68rem;font-weight:600}
+.si-row{display:flex;gap:.65rem;align-items:center}
+.si-box{position:relative;flex-shrink:0}
+.si-prefix{position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.76rem;pointer-events:none;z-index:1}
+.si-input{
+  width:96px;padding:.38rem .45rem .38rem 1.3rem;
+  background:var(--surface);border:1.5px solid var(--border2);
+  border-radius:8px;font-size:.8rem;font-weight:700;
+  text-align:right;outline:none;color:inherit;
+  transition:border-color .2s,box-shadow .2s;
+}
+.si-input.no-prefix{padding:.38rem .5rem;width:60px}
+.si-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(200,164,90,.15)}
+
+/* ── Buttons ── */
+.btn-gold{
+  background:linear-gradient(135deg,var(--gold-dk),var(--gold),var(--gold-lt));
+  color:#080c12;font-weight:700;border:none;border-radius:12px;
+  padding:.9rem 1.5rem;font-size:.88rem;letter-spacing:.04em;
+  transition:.2s;width:100%;margin-top:1rem;
+  font-family:'Playfair Display',serif;font-size:.95rem;
+}
+.btn-gold:hover{filter:brightness(1.1);transform:translateY(-2px);box-shadow:0 8px 24px rgba(200,164,90,.3)}
+.btn-ghost{
+  background:rgba(255,255,255,.04);border:1px solid var(--border2);
+  color:var(--text-sub);border-radius:12px;padding:.7rem 1rem;
+  font-size:.8rem;transition:.2s;
+}
+.btn-ghost:hover{border-color:var(--gold);color:var(--text)}
+.btn-sm{
+  padding:.3rem .65rem;font-size:.68rem;font-weight:600;
+  border-radius:8px;border:1px solid var(--border2);
+  background:rgba(255,255,255,.04);color:var(--text-sub);transition:.2s;
+}
+.btn-sm:hover{border-color:var(--gold);color:var(--gold)}
+.btn-danger{background:rgba(232,85,106,.1);border:1px solid rgba(232,85,106,.3);color:var(--rose)}
+
+/* ── Progress bars ── */
+.prog-wrap{height:5px;background:var(--border);border-radius:9px;overflow:hidden;margin:.3rem 0}
+.prog-bar{height:100%;border-radius:9px;transition:width 1s cubic-bezier(.4,0,.2,1)}
+
+/* ── Tabs ── */
+.tab-pills{display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:1.1rem}
+.tab-pill{
+  padding:.38rem .75rem;font-size:.67rem;font-weight:600;
+  border-radius:20px;border:1px solid var(--border2);
+  color:var(--muted);background:transparent;transition:all .2s;
+  white-space:nowrap;
+}
+.tab-pill.active{background:var(--gold);color:#080c12;border-color:var(--gold)}
+.tab-pill:hover:not(.active){border-color:var(--gold);color:var(--text)}
+.tab-content{display:none}
+.tab-content.active{display:block;animation:fadeUp .35s ease}
+
+/* ── Insight pills ── */
+.insight{
+  display:flex;align-items:flex-start;gap:.6rem;
+  border-radius:10px;padding:.65rem .85rem;margin-bottom:.55rem;
+  border:1px solid transparent;
+}
+.insight-icon{font-size:.95rem;flex-shrink:0;margin-top:1px}
+.insight-text{font-size:.74rem;color:var(--text);line-height:1.55}
+
+/* ── Row stat ── */
+.row-stat{display:flex;justify-content:space-between;align-items:center;padding:.38rem 0;border-bottom:1px dashed var(--border)}
+.row-stat:last-child{border-bottom:none}
+.rs-label{font-size:.74rem;color:var(--text-sub)}
+.rs-label.bold{color:var(--text);font-weight:600}
+.rs-val{font-family:'Playfair Display',serif;font-size:.82rem;font-weight:700}
+
+/* ── Checklist ── */
+.check-item{display:flex;align-items:center;gap:.55rem;padding:.4rem 0;border-bottom:1px dashed var(--border)}
+.check-dot{width:20px;height:20px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:700;transition:.3s}
+
+/* ── Big expense card ── */
+.big-exp-card{border-radius:12px;padding:.85rem;margin-bottom:.65rem;position:relative;background:var(--card2);border:1px solid var(--border2);transition:.2s}
+.big-exp-card:hover{border-color:var(--border);background:var(--card)}
+
+/* ── Timeline item ── */
+.timeline-item{display:flex;gap:.8rem;margin-bottom:.75rem;padding-bottom:.75rem;border-bottom:1px dashed var(--border)}
+.timeline-badge{flex-shrink:0;width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:1rem;font-weight:700}
+
+/* ── Regime buttons ── */
+.regime-btn{
+  padding:.8rem .6rem;border-radius:12px;text-align:center;
+  border:1.5px solid var(--border2);background:var(--surface);
+  cursor:pointer;transition:all .2s;color:var(--muted);
+}
+.regime-btn.active{background:rgba(200,164,90,.12);border-color:var(--gold);color:var(--gold)}
+
+/* ── Scenario cards ── */
+.scenario-card{
+  border-radius:14px;padding:1.1rem;margin-bottom:.85rem;
+  background:var(--card);border:1px solid var(--border);
+  transition:all .3s;
+}
+.scenario-card.dim{opacity:.38;transform:scale(.98)}
+
+/* ── Dashboard specific ── */
+.dash-hero{
+  background:linear-gradient(135deg,var(--card) 0%,var(--surface) 100%);
+  border:1px solid var(--border);border-radius:20px;
+  padding:1.5rem;margin-bottom:1.2rem;
+  position:relative;overflow:hidden;
+}
+.dash-hero::before{
+  content:'';position:absolute;top:-40%;right:-10%;
+  width:300px;height:300px;border-radius:50%;
+  background:radial-gradient(circle,rgba(200,164,90,.08) 0%,transparent 70%);
+  pointer-events:none;
+}
+.donut-wrap{display:flex;justify-content:center;align-items:center;margin:.8rem 0}
+
+/* ── Chart containers ── */
+.chart-wrap{position:relative;width:100%;margin:.5rem 0}
+
+/* ── Withdrawal steps ── */
+.step-item{display:flex;gap:.65rem;align-items:flex-start;margin-bottom:.6rem;padding-bottom:.6rem;border-bottom:1px dashed var(--border)}
+.step-num{width:26px;height:26px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700}
+
+/* ── Mobile ── */
+#mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:100;background:var(--card);border-top:1px solid var(--border);padding:.5rem;overflow-x:auto}
+.mnav-item{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:.2rem;padding:.4rem .7rem;border-radius:10px;cursor:pointer;font-size:.6rem;color:var(--muted);transition:.2s;background:none;border:none;white-space:nowrap}
+.mnav-item.active{color:var(--gold)}
+.mnav-icon{font-size:1.1rem}
+.mnav-bar{display:flex;gap:.2rem;justify-content:space-around;width:100%}
+
+#hamburger{display:none;background:none;border:none;color:var(--text);font-size:1.3rem;padding:.3rem;cursor:pointer}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99}
+
+@media(max-width:768px){
+  #sidebar{transform:translateX(-100%)}
+  #sidebar.open{transform:none}
+  #main{margin-left:0}
+  #mobile-nav{display:block}
+  #hamburger{display:block}
+  .page{padding:1rem;padding-bottom:5rem}
+  .grid2{grid-template-columns:1fr 1fr}
+  .grid3{grid-template-columns:1fr 1fr}
+  .grid4{grid-template-columns:1fr 1fr}
+  .dash-hero{padding:1.1rem}
+  .sidebar-overlay.show{display:block}
+}
+@media(max-width:420px){
+  .grid3{grid-template-columns:1fr 1fr}
+  .grid4{grid-template-columns:1fr 1fr}
+}
+
+/* ── Glow effects ── */
+.glow-teal{box-shadow:0 4px 20px rgba(46,196,160,.12)}
+.glow-gold{box-shadow:0 4px 20px rgba(200,164,90,.12)}
+.glow-rose{box-shadow:0 4px 20px rgba(232,85,106,.12)}
+
+/* ── Number transition ── */
+.num{transition:all .4s ease}
+
+/* ── Divider ── */
+.divider{height:1px;background:var(--border);margin:1.1rem 0}
+
+/* ── Alert boxes ── */
+.alert{border-radius:10px;padding:.65rem .85rem;font-size:.74rem;line-height:1.5;margin:.6rem 0}
+
+/* ── Tag ── */
+.tag{display:inline-block;padding:.15rem .55rem;border-radius:20px;font-size:.62rem;font-weight:700;margin:.1rem .1rem}
+
+/* ── Comparison table ── */
+.comp-table{width:100%;border-collapse:collapse}
+.comp-table th,.comp-table td{padding:.45rem .6rem;text-align:left;border-bottom:1px dashed var(--border);font-size:.74rem}
+.comp-table th{font-size:.62rem;color:var(--text-sub);text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+
+/* Slab table */
+.slab-row{display:flex;justify-content:space-between;padding:.38rem 0;border-bottom:1px dashed var(--border);font-size:.74rem}
+.slab-highlight{background:rgba(200,164,90,.06);border-radius:6px;padding:.38rem .6rem;margin:-.38rem -.6rem}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ══ SIDEBAR ══ -->
+<nav id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-brand">MoneyWise Banker</div>
+    <div class="logo-title">Retirement Planner</div>
+    <div class="logo-sub">Pro Edition · FY 2024-25</div>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">Overview</div>
+    <a class="nav-item active" data-page="dashboard" onclick="showPage('dashboard',this)">
+      <span class="nav-icon">🏠</span> Dashboard
+    </a>
+    <div class="nav-section">Configure</div>
+    <a class="nav-item" data-page="configure" onclick="showPage('configure',this)">
+      <span class="nav-icon">⚙️</span> Inputs
+    </a>
+    <div class="nav-section">Analysis</div>
+    <a class="nav-item" data-page="analysis" onclick="showPage('analysis',this)">
+      <span class="nav-icon">📊</span> Corpus Analysis
+    </a>
+    <a class="nav-item" data-page="tax" onclick="showPage('tax',this)">
+      <span class="nav-icon">🧾</span> Tax Planning
+    </a>
+    <a class="nav-item" data-page="goals" onclick="showPage('goals',this)">
+      <span class="nav-icon">🎯</span> Goals & Timeline
+    </a>
+    <a class="nav-item" data-page="scenarios" onclick="showPage('scenarios',this)">
+      <span class="nav-icon">🔭</span> Scenarios
+    </a>
+  </div>
+  <div class="sidebar-footer">
+    Calculations based on FY 2024-25 tax slabs.<br>Consult a SEBI-registered advisor.
+  </div>
+</nav>
+<div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<!-- ══ MAIN ══ -->
+<div id="main">
+  <div id="topbar">
+    <div style="display:flex;align-items:center;gap:.8rem">
+      <button id="hamburger" onclick="toggleSidebar()">☰</button>
+      <div>
+        <div class="topbar-title" id="page-title">Dashboard</div>
+        <div class="topbar-sub" id="page-sub">Your retirement overview</div>
+      </div>
+    </div>
+    <div class="readiness-chip">
+      <div>
+        <div class="readiness-label">Readiness Score</div>
+        <div class="readiness-val" id="hdr-readiness" style="color:var(--gold)">—%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ DASHBOARD ══ -->
+  <div class="page active" id="page-dashboard">
+    <!-- Hero -->
+    <div class="dash-hero fu" style="animation-delay:.05s">
+      <div style="display:flex;align-items:center;gap:1.2rem;flex-wrap:wrap">
+        <div style="flex-shrink:0">
+          <canvas id="donutMain" width="130" height="130"></canvas>
+        </div>
+        <div style="flex:1;min-width:180px">
+          <div style="font-size:.65rem;color:var(--gold);letter-spacing:.18em;text-transform:uppercase;margin-bottom:.3rem">Retirement Readiness</div>
+          <div style="font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:900;color:#fff;line-height:1" id="dash-status">—</div>
+          <div style="font-size:.76rem;color:var(--text-sub);margin-top:.35rem;line-height:1.5" id="dash-status-sub">Configure your details to begin</div>
+          <div style="margin-top:1rem;height:6px;background:var(--border);border-radius:9px;overflow:hidden">
+            <div id="dash-progress" style="height:100%;border-radius:9px;width:0%;background:linear-gradient(90deg,var(--gold-dk),var(--gold));transition:width 1.2s cubic-bezier(.4,0,.2,1)"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:.3rem">
+            <span style="font-size:.62rem;color:var(--muted)">0%</span>
+            <span style="font-size:.62rem;color:var(--muted)">100%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6 KPI cards -->
+    <div class="grid3 gap1 mb1">
+      <div class="stat-card fu" style="animation-delay:.1s;border-color:rgba(46,196,160,.25)">
+        <div class="stat-label">Corpus You'll Build</div>
+        <div class="stat-value" id="kpi-corpus" style="color:var(--teal)">₹—</div>
+        <div class="stat-sub" id="kpi-corpus-sub">—</div>
+      </div>
+      <div class="stat-card fu" style="animation-delay:.16s;border-color:rgba(78,168,224,.25)">
+        <div class="stat-label">Corpus Required</div>
+        <div class="stat-value" id="kpi-req" style="color:var(--sky)">₹—</div>
+        <div class="stat-sub" id="kpi-req-sub">—</div>
+      </div>
+      <div class="stat-card fu" style="animation-delay:.22s">
+        <div class="stat-label" id="kpi-gap-label">Surplus / Shortfall</div>
+        <div class="stat-value" id="kpi-gap" style="color:var(--gold)">₹—</div>
+        <div class="stat-sub" id="kpi-gap-sub">—</div>
+      </div>
+      <div class="stat-card fu" style="animation-delay:.28s;border-color:rgba(149,128,245,.25)">
+        <div class="stat-label">Monthly Need at Retirement</div>
+        <div class="stat-value" id="kpi-need" style="color:var(--lavender)">₹—</div>
+        <div class="stat-sub" id="kpi-need-sub">—</div>
+      </div>
+      <div class="stat-card fu" style="animation-delay:.34s;border-color:rgba(200,164,90,.25)">
+        <div class="stat-label">Current Tax (Annual)</div>
+        <div class="stat-value" id="kpi-tax" style="color:var(--gold)">₹—</div>
+        <div class="stat-sub" id="kpi-tax-sub">—</div>
+      </div>
+      <div class="stat-card fu" style="animation-delay:.4s;border-color:rgba(61,214,140,.25)">
+        <div class="stat-label">Monthly Ret. Income</div>
+        <div class="stat-value" id="kpi-income" style="color:var(--mint)">₹—</div>
+        <div class="stat-sub" id="kpi-income-sub">—</div>
+      </div>
+    </div>
+
+    <!-- Mini charts row -->
+    <div class="grid2 gap1 mb1">
+      <div class="card card-pad fu" style="animation-delay:.45s">
+        <div class="section-header" style="margin-bottom:.7rem">
+          <span class="section-icon">📈</span>
+          <span class="section-title" style="color:var(--teal);font-size:.88rem">Corpus Growth</span>
+        </div>
+        <div class="chart-wrap" style="height:160px"><canvas id="miniGrowth"></canvas></div>
+      </div>
+      <div class="card card-pad fu" style="animation-delay:.5s">
+        <div class="section-header" style="margin-bottom:.7rem">
+          <span class="section-icon">🍩</span>
+          <span class="section-title" style="color:var(--gold);font-size:.88rem">Corpus Allocation</span>
+        </div>
+        <div class="chart-wrap" style="height:160px"><canvas id="miniAlloc"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Checklist + Insights split -->
+    <div class="grid2 gap1 mb1">
+      <div class="card card-pad fu" style="animation-delay:.55s">
+        <div class="section-header">
+          <span class="section-icon">✅</span>
+          <span class="section-title" style="color:var(--lavender)">Readiness Checklist</span>
+          <span style="margin-left:auto;font-size:.7rem;color:var(--text-sub)" id="checklist-score">—</span>
+        </div>
+        <div id="dash-checklist"></div>
+      </div>
+      <div class="card card-pad fu" style="animation-delay:.6s">
+        <div class="section-header">
+          <span class="section-icon">🧠</span>
+          <span class="section-title" style="color:var(--gold)">Key Insights</span>
+        </div>
+        <div id="dash-insights"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CONFIGURE ══ -->
+  <div class="page" id="page-configure">
+    <div class="tab-pills" id="config-tabs">
+      <button class="tab-pill active" onclick="switchTab('cfg',0,this)">👤 Profile</button>
+      <button class="tab-pill" onclick="switchTab('cfg',1,this)">💰 Corpus</button>
+      <button class="tab-pill" onclick="switchTab('cfg',2,this)">📈 Rates</button>
+      <button class="tab-pill" onclick="switchTab('cfg',3,this)">🏠 Lifestyle</button>
+      <button class="tab-pill" onclick="switchTab('cfg',4,this)">🧾 Tax</button>
+      <button class="tab-pill" onclick="switchTab('cfg',5,this)">🎯 Goals</button>
+      <button class="tab-pill" onclick="switchTab('cfg',6,this)">🚑 Medical</button>
+    </div>
+
+    <!-- Profile tab -->
+    <div class="tab-content active" id="cfg-tab-0">
+      <div class="card card-pad mb1">
+        <div class="section-header"><span class="section-icon">👤</span><span class="section-title" style="color:var(--sky)">Personal Timeline</span></div>
+        <div id="si-age"></div>
+        <div id="si-retage"></div>
+        <div id="si-lifeexp"></div>
+        <div style="display:flex;align-items:center;gap:.6rem;padding:.55rem .8rem;background:var(--surface);border-radius:10px;border:1px solid var(--border);margin-bottom:1rem">
+          <input type="checkbox" id="chk-spouse" style="accent-color:var(--gold);width:15px;height:15px" onchange="render()">
+          <label for="chk-spouse" style="font-size:.78rem;color:var(--text-sub);cursor:pointer">Include spouse in plan</label>
+        </div>
+        <div id="spouse-row" style="display:none"><div id="si-spouse"></div></div>
+        <div class="grid3" id="profile-stats" style="background:var(--surface);border-radius:12px;padding:.9rem;border:1px solid var(--border)">
+          <div style="text-align:center"><div style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;color:var(--sky)" id="ps-ytret">—</div><div style="font-size:.6rem;color:var(--muted);margin-top:.1rem">Years to Retire</div></div>
+          <div style="text-align:center"><div style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;color:var(--lavender)" id="ps-retspan">—</div><div style="font-size:.6rem;color:var(--muted);margin-top:.1rem">Retirement Span</div></div>
+          <div style="text-align:center"><div style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;color:var(--rose)" id="ps-total">—</div><div style="font-size:.6rem;color:var(--muted);margin-top:.1rem">Total Plan (yrs)</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Corpus tab -->
+    <div class="tab-content" id="cfg-tab-1">
+      <div class="card card-pad mb1">
+        <div class="section-header"><span class="section-icon">💰</span><span class="section-title" style="color:var(--teal)">One-Time Corpus</span></div>
+        <div id="si-savings"></div>
+        <div id="si-pf"></div>
+        <div id="si-ppf"></div>
+        <div id="si-nps"></div>
+        <div id="si-gratuity"></div>
+        <div class="card-inner" style="padding:.85rem 1rem;margin-top:.3rem" id="corpus-breakdown"></div>
+      </div>
+      <div class="card card-pad mb1">
+        <div class="section-header"><span class="section-icon">💳</span><span class="section-title" style="color:var(--gold)">SIP / Monthly Investment</span></div>
+        <div id="si-sip"></div>
+        <div id="si-sipstep"></div>
+        <div class="alert" style="background:rgba(200,164,90,.06);border:1px solid rgba(200,164,90,.2);color:var(--text-sub);font-size:.72rem" id="sip-projection"></div>
+      </div>
+    </div>
+
+    <!-- Rates tab -->
+    <div class="tab-content" id="cfg-tab-2">
+      <div class="card card-pad mb1">
+        <div class="section-header"><span class="section-icon">📈</span><span class="section-title" style="color:var(--gold)">Return Rates</span></div>
+        <div id="si-preret"></div>
+        <div id="si-postret"></div>
+        <div id="si-inflation"></div>
+        <div id="si-medinfl"></div>
+        <div class="card-inner" style="padding:.85rem 1rem" id="rates-summary"></div>
+      </div>
+    </div>
+
+    <!-- Lifestyle tab -->
+    <div class="tab-content" id="cfg-tab-3">
+      <div class="card card-pad mb1">
+        <div class="section-header"><span class="section-icon">🏠</span><span class="section-title" style="color:var(--lavender)">Retirement Lifestyle</span></div>
+        <div id="si-expenses"></div>
+        <div id="si-pension"></div>
+        <div class="card-inner" style="padding:.85rem 1rem" id="lifestyle-summary"></div>
+      </div>
+    </div>
+
+    <!-- Tax tab -->
+    <div class="tab-content" id="cfg-tab-4">
+      <div class="card card-pad mb1">
+        <div class="section-header"><span class="section-icon">🧾</span><span class="section-title" style="color:var(--gold)">Tax Regime</span></div>
+        <div class="grid2" style="margin-bottom:1rem" id="regime-btns">
+          <button class="regime-btn active" id="btn-new" onclick="setRegime('new')">
+            <div style="font-size:.78rem;font-weight:700;margin-bottom:.2rem">New Regime</div>
+            <div style="font-size:.62rem;color:var(--muted)">₹75K std deduction, lower slabs</div>
+          </button>
+          <button class="regime-btn" id="btn-old" onclick="setRegime('old')">
+            <div style="font-size:.78rem;font-weight:700;margin-bottom:.2rem">Old Regime</div>
+            <div style="font-size:.62rem;color:var(--muted)">80C/80D/HRA deductions</div>
+          </button>
+        </div>
+        <div id="si-gross"></div>
+        <div id="si-otherinc"></div>
+        <div id="old-deductions" style="display:none">
+          <div class="divider"></div>
+          <div style="font-size:.7rem;color:var(--gold);font-weight:700;margin-bottom:.7rem">📋 Deductions (Old Regime)</div>
+          <div id="si-80c"></div>
+          <div id="si-80d"></div>
+          <div id="si-80ccd"></div>
+          <div id="si-hra"></div>
+          <div id="si-lta"></div>
+          <div id="si-homeloan"></div>
+          <div id="si-otherded"></div>
+        </div>
+        <div class="card-inner" style="padding:1rem;margin-top:.5rem" id="tax-live"></div>
+      </div>
+    </div>
+
+    <!-- Goals tab -->
+    <div class="tab-content" id="cfg-tab-5">
+      <div class="card card-pad mb1">
+        <div class="section-header">
+          <span class="section-icon">🎯</span>
+          <span class="section-title" style="color:var(--amber)">Big Expenses After Retirement</span>
+          <button class="btn-sm" style="margin-left:auto" onclick="addBigExp()">+ Add Goal</button>
+        </div>
+        <div id="big-exp-list"></div>
+        <div style="text-align:right;font-size:.76rem;color:var(--amber);font-weight:700;margin-top:.5rem" id="big-total"></div>
+      </div>
+      <div class="card card-pad mb1">
+        <div class="section-header"><span class="section-icon">🏛️</span><span class="section-title" style="color:var(--gold)">Legacy & Charitable Goals</span></div>
+        <div id="si-legacy"></div>
+        <div id="si-donation"></div>
+        <div class="alert" style="background:rgba(200,164,90,.06);border:1px solid rgba(200,164,90,.2);font-size:.72rem;color:var(--text-sub)">
+          🏛️ <strong style="color:var(--gold)">Tip:</strong> Total legacy of <span id="legacy-total" style="color:var(--gold)">₹—</span>. Ensure a registered will & updated nominees across all accounts.
+        </div>
+      </div>
+    </div>
+
+    <!-- Medical tab -->
+    <div class="tab-content" id="cfg-tab-6">
+      <div class="card card-pad mb1">
+        <div class="section-header"><span class="section-icon">🚑</span><span class="section-title" style="color:var(--sky)">Medical & Health Planning</span></div>
+        <div id="si-medbuf"></div>
+        <div id="si-hiprem"></div>
+        <div style="display:flex;align-items:center;gap:.6rem;padding:.55rem .8rem;background:var(--surface);border-radius:10px;border:1px solid var(--border);margin-bottom:.9rem">
+          <input type="checkbox" id="chk-crit" style="accent-color:var(--sky);width:15px;height:15px" onchange="render()">
+          <label for="chk-crit" style="font-size:.78rem;color:var(--text-sub);cursor:pointer">Include Critical Illness Reserve</label>
+        </div>
+        <div id="crit-row" style="display:none"><div id="si-critamt"></div></div>
+        <div class="card-inner" style="padding:.85rem 1rem;margin-bottom:.8rem" id="med-summary"></div>
+        <div style="height:170px;margin:.5rem 0"><canvas id="medChart"></canvas></div>
+      </div>
+    </div>
+
+    <button class="btn-gold" onclick="showPage('analysis',document.querySelector('[data-page=analysis]'))">View Full Analysis →</button>
+  </div>
+
+  <!-- ══ ANALYSIS ══ -->
+  <div class="page" id="page-analysis">
+    <!-- Hero -->
+    <div class="dash-hero fu mb1" style="animation-delay:.05s;border-color:rgba(200,164,90,.2)">
+      <div style="display:flex;align-items:center;gap:1.2rem;flex-wrap:wrap">
+        <canvas id="donutAnalysis" width="130" height="130"></canvas>
+        <div style="flex:1;min-width:180px">
+          <div style="font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:900;line-height:1;margin-bottom:.3rem" id="an-status">—</div>
+          <div style="font-size:.74rem;color:var(--text-sub);line-height:1.5" id="an-sub">—</div>
+          <div class="grid2" style="margin-top:.9rem;gap:.5rem" id="an-stats"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Allocation breakdown -->
+    <div class="card card-pad fu mb1" style="animation-delay:.1s">
+      <div class="section-header"><span class="section-icon">🧩</span><span class="section-title" style="color:var(--gold)">Where Your Corpus Goes</span></div>
+      <div id="corpus-alloc"></div>
+    </div>
+
+    <!-- Growth chart -->
+    <div class="card card-pad fu mb1" style="animation-delay:.15s">
+      <div class="section-header"><span class="section-icon">📈</span><span class="section-title" style="color:var(--teal)">Corpus Growth (Pre-Retirement)</span></div>
+      <div style="font-size:.68rem;color:var(--muted);margin-bottom:.7rem" id="growth-sub">—</div>
+      <div style="height:220px"><canvas id="growthChart"></canvas></div>
+    </div>
+
+    <!-- Drawdown chart -->
+    <div class="card card-pad fu mb1" style="animation-delay:.2s">
+      <div class="section-header"><span class="section-icon">📉</span><span class="section-title" style="color:var(--lavender)">Corpus Drawdown (Post-Retirement)</span></div>
+      <div style="font-size:.68rem;color:var(--muted);margin-bottom:.7rem" id="drawdown-sub">—</div>
+      <div style="height:220px"><canvas id="drawdownChart"></canvas></div>
+    </div>
+
+    <!-- Monthly income + inflation side by side -->
+    <div class="grid2 gap1 mb1">
+      <div class="card card-pad fu" style="animation-delay:.25s">
+        <div class="section-header"><span class="section-icon">💵</span><span class="section-title" style="color:var(--gold);font-size:.88rem">Monthly Income</span></div>
+        <div id="income-breakdown"></div>
+        <div style="height:170px;margin-top:.5rem"><canvas id="incomeDonut"></canvas></div>
+      </div>
+      <div class="card card-pad fu" style="animation-delay:.3s">
+        <div class="section-header"><span class="section-icon">🔥</span><span class="section-title" style="color:var(--rose);font-size:.88rem">Inflation Impact</span></div>
+        <div style="font-size:.67rem;color:var(--muted);margin-bottom:.5rem" id="infl-sub">—</div>
+        <div style="height:170px"><canvas id="inflChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Insights -->
+    <div class="card card-pad fu mb1" style="animation-delay:.35s">
+      <div class="section-header"><span class="section-icon">🧠</span><span class="section-title" style="color:var(--gold)">Personalised Insights</span></div>
+      <div id="analysis-insights"></div>
+    </div>
+
+    <!-- Full checklist -->
+    <div class="card card-pad fu mb1" style="animation-delay:.4s">
+      <div class="section-header">
+        <span class="section-icon">✅</span>
+        <span class="section-title" style="color:var(--lavender)">Retirement Readiness Checklist</span>
+        <span style="margin-left:auto;font-size:.72rem;color:var(--text-sub)" id="an-check-score">—</span>
+      </div>
+      <div id="analysis-checklist"></div>
+    </div>
+  </div>
+
+  <!-- ══ TAX ══ -->
+  <div class="page" id="page-tax">
+    <!-- Summary -->
+    <div class="card card-pad fu mb1" style="animation-delay:.05s;border-color:rgba(200,164,90,.2)">
+      <div class="section-header"><span class="section-icon">💼</span><span class="section-title" style="color:var(--gold)">Current Year Tax Summary</span></div>
+      <div class="grid3 gap1 mb1" id="tax-kpis"></div>
+      <div id="tax-regime-banner"></div>
+    </div>
+
+    <!-- Regime comparison -->
+    <div class="card card-pad fu mb1" style="animation-delay:.1s">
+      <div class="section-header"><span class="section-icon">⚖️</span><span class="section-title" style="color:var(--sky)">Regime Comparison</span></div>
+      <div class="grid2 gap1 mb1" id="regime-compare"></div>
+      <div style="height:180px"><canvas id="taxBar"></canvas></div>
+    </div>
+
+    <!-- Slab breakdown -->
+    <div class="card card-pad fu mb1" style="animation-delay:.15s">
+      <div class="section-header"><span class="section-icon">📊</span><span class="section-title" style="color:var(--lavender)">Tax Slab Breakdown</span></div>
+      <div id="slab-breakdown"></div>
+    </div>
+
+    <!-- 80C utilisation (old regime only) -->
+    <div class="card card-pad fu mb1" id="ded-card" style="animation-delay:.2s">
+      <div class="section-header"><span class="section-icon">💡</span><span class="section-title" style="color:var(--mint)">Deduction Utilisation</span></div>
+      <div id="ded-breakdown"></div>
+    </div>
+
+    <!-- Post retirement tax -->
+    <div class="card card-pad fu mb1" style="animation-delay:.25s;border-color:rgba(78,168,224,.2)">
+      <div class="section-header"><span class="section-icon">🏖️</span><span class="section-title" style="color:var(--sky)">Post-Retirement Tax Planning</span></div>
+      <div class="card-inner" style="padding:.85rem 1rem;margin-bottom:.9rem" id="ret-tax-summary"></div>
+      <div style="font-size:.72rem;color:var(--gold);font-weight:700;margin-bottom:.7rem">🧠 Smart Withdrawal Order</div>
+      <div id="withdrawal-steps"></div>
+    </div>
+
+    <!-- Tax tips -->
+    <div class="card card-pad fu mb1" style="animation-delay:.3s;border-color:rgba(200,164,90,.15)">
+      <div class="section-header"><span class="section-icon">💡</span><span class="section-title" style="color:var(--gold)">Tax-Saving Tips for Retirement</span></div>
+      <div id="tax-tips"></div>
+    </div>
+  </div>
+
+  <!-- ══ GOALS ══ -->
+  <div class="page" id="page-goals">
+    <div class="card card-pad fu mb1" style="animation-delay:.05s">
+      <div class="section-header">
+        <span class="section-icon">🎯</span>
+        <span class="section-title" style="color:var(--amber)">Big Expense Timeline</span>
+        <button class="btn-sm" style="margin-left:auto" onclick="showPage('configure',document.querySelector('[data-page=configure]'));switchTab('cfg',5,document.querySelectorAll('#config-tabs .tab-pill')[5])">+ Add Goal</button>
+      </div>
+      <div id="goals-timeline"></div>
+      <div class="divider"></div>
+      <div id="goals-total-row"></div>
+    </div>
+    <div class="card card-pad fu mb1" style="animation-delay:.12s">
+      <div class="section-header"><span class="section-icon">🔥</span><span class="section-title" style="color:var(--rose)">Expense Inflation Trajectory</span></div>
+      <div style="font-size:.67rem;color:var(--muted);margin-bottom:.7rem" id="infl-traj-sub">—</div>
+      <div style="height:200px"><canvas id="inflTrajChart"></canvas></div>
+    </div>
+    <div class="card card-pad fu mb1" style="animation-delay:.18s">
+      <div class="section-header"><span class="section-icon">🚑</span><span class="section-title" style="color:var(--sky)">Medical Cost Growth</span></div>
+      <div style="height:170px"><canvas id="medGrowthChart"></canvas></div>
+    </div>
+    <div class="card card-pad fu mb1" style="animation-delay:.24s;border-color:rgba(200,164,90,.15)">
+      <div class="section-header"><span class="section-icon">🏛️</span><span class="section-title" style="color:var(--gold)">Legacy & Estate</span></div>
+      <div id="legacy-summary"></div>
+    </div>
+  </div>
+
+  <!-- ══ SCENARIOS ══ -->
+  <div class="page" id="page-scenarios">
+    <div style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:var(--gold);margin-bottom:.3rem">🔭 Scenario Analysis</div>
+    <div style="font-size:.73rem;color:var(--text-sub);margin-bottom:1.1rem;line-height:1.5">How your plan holds up under different market and economic conditions.</div>
+
+    <div class="grid3 gap1 mb1">
+      <button onclick="setScenario('base')" id="sc-base" class="regime-btn active" style="padding:.9rem .6rem">
+        <div style="font-size:1.2rem;margin-bottom:.3rem">📊</div>
+        <div style="font-size:.8rem;font-weight:700;margin-bottom:.2rem">Base Case</div>
+        <div style="font-size:.62rem;color:var(--muted)">Expected conditions</div>
+      </button>
+      <button onclick="setScenario('optimistic')" id="sc-opt" class="regime-btn" style="padding:.9rem .6rem">
+        <div style="font-size:1.2rem;margin-bottom:.3rem">🚀</div>
+        <div style="font-size:.8rem;font-weight:700;margin-bottom:.2rem">Bull Run</div>
+        <div style="font-size:.62rem;color:var(--muted)">Higher returns, lower inflation</div>
+      </button>
+      <button onclick="setScenario('pessimistic')" id="sc-pes" class="regime-btn" style="padding:.9rem .6rem">
+        <div style="font-size:1.2rem;margin-bottom:.3rem">🌧️</div>
+        <div style="font-size:.8rem;font-weight:700;margin-bottom:.2rem">Bear Case</div>
+        <div style="font-size:.62rem;color:var(--muted)">Lower returns, higher inflation</div>
+      </button>
+    </div>
+
+    <div id="scenario-cards"></div>
+
+    <div class="card card-pad fu mb1">
+      <div class="section-header"><span class="section-icon">📊</span><span class="section-title" style="color:var(--gold)">Corpus Across Scenarios</span></div>
+      <div style="height:200px"><canvas id="scenarioBar"></canvas></div>
+    </div>
+
+    <div class="card card-pad fu mb1" style="border-color:rgba(149,128,245,.2)">
+      <div class="section-header"><span class="section-icon">🎛️</span><span class="section-title" style="color:var(--lavender)">What-If Analysis</span></div>
+      <div id="whatif-table"></div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+</div><!-- /app -->
+
+<!-- Mobile nav -->
+<div id="mobile-nav">
+  <div class="mnav-bar">
+    <button class="mnav-item active" onclick="showPage('dashboard',this)" data-page="dashboard"><span class="mnav-icon">🏠</span>Home</button>
+    <button class="mnav-item" onclick="showPage('configure',this)" data-page="configure"><span class="mnav-icon">⚙️</span>Inputs</button>
+    <button class="mnav-item" onclick="showPage('analysis',this)" data-page="analysis"><span class="mnav-icon">📊</span>Analysis</button>
+    <button class="mnav-item" onclick="showPage('tax',this)" data-page="tax"><span class="mnav-icon">🧾</span>Tax</button>
+    <button class="mnav-item" onclick="showPage('scenarios',this)" data-page="scenarios"><span class="mnav-icon">🔭</span>Scenarios</button>
+  </div>
+</div>
+<script>
+/* ════════════════════════════════
+   STATE
+════════════════════════════════ */
+const S = {
+  age:56, retAge:60, lifeExp:85, spouseAge:52, hasSpouse:false,
+  savings:5000000, pf:2000000, ppf:500000, nps:800000, gratuity:1500000,
+  sip:30000, sipStep:10,
+  preRet:8, postRet:6.5, inflation:6, medInfl:10,
+  expenses:80000, pension:25000,
+  gross:1800000, otherInc:100000,
+  s80c:150000, s80d:50000, s80ccd:50000, hra:0, lta:0, homeloan:0, otherDed:0,
+  regime:'new',
+  medBuffer:1000000, hiPrem:30000, critIll:false, critAmt:2000000,
+  legacy:2000000, donation:500000,
+  bigExp:[
+    {id:1,label:"Child's Education / Wedding",year:3,amount:2000000},
+    {id:2,label:"Home Renovation",year:5,amount:3000000},
+    {id:3,label:"Travel / Pilgrimage",year:8,amount:500000}
+  ],
+  scenario:'base'
+};
+
+/* ════════════════════════════════
+   HELPERS
+════════════════════════════════ */
+const clamp = (v,lo,hi) => Math.max(lo,Math.min(hi,v));
+const cr = n => {
+  if(isNaN(n)||n<0) return '0';
+  if(n>=1e7) return `${(n/1e7).toFixed(2)} Cr`;
+  if(n>=1e5) return `${(n/1e5).toFixed(2)} L`;
+  return Math.round(n).toLocaleString('en-IN');
+};
+const inr = n => `₹${cr(n)}`;
+const pct = (a,b) => b>0?clamp(Math.round((a/b)*100),0,100):0;
+const fmt = n => Math.round(n).toLocaleString('en-IN');
+
+const COLORS = {
+  teal:'#2ec4a0', rose:'#e8556a', sky:'#4ea8e0',
+  lavender:'#9580f5', amber:'#f5a623', mint:'#3dd68c',
+  gold:'#c8a45a', muted:'#3a526a'
+};
+
+/* ════════════════════════════════
+   TAX ENGINE
+════════════════════════════════ */
+function calcTaxNew(income) {
+  const std = 75000;
+  const taxable = Math.max(0, income - std);
+  let tax = 0;
+  if(taxable>300000)  tax += (Math.min(taxable,700000)-300000)*0.05;
+  if(taxable>700000)  tax += (Math.min(taxable,1000000)-700000)*0.10;
+  if(taxable>1000000) tax += (Math.min(taxable,1200000)-1000000)*0.15;
+  if(taxable>1200000) tax += (Math.min(taxable,1500000)-1200000)*0.20;
+  if(taxable>1500000) tax += (taxable-1500000)*0.30;
+  if(taxable<=700000) tax = 0;
+  const sur = taxable>5000000 ? tax*(taxable>10000000?0.15:0.10) : 0;
+  const cess = (tax+sur)*0.04;
+  return {tax:Math.round(tax+sur+cess), taxable:Math.round(taxable), deducted:std};
+}
+
+function calcTaxOld(income, age, ded) {
+  const {s80c,s80d,s80ccd,hra,lta,homeloan,otherDed} = ded;
+  const maxD = Math.min(s80d, age>=60?100000:50000);
+  const totalDed = 50000 + Math.min(s80c,150000) + maxD + Math.min(s80ccd,50000)
+    + hra + lta + Math.min(homeloan,200000) + otherDed;
+  const taxable = Math.max(0, income - totalDed);
+  let tax = 0;
+  const exempt = age>=80?500000:age>=60?300000:250000;
+  if(taxable>exempt)   tax += (Math.min(taxable,500000)-Math.min(taxable,exempt))*0.05;
+  if(taxable>500000)  tax += (Math.min(taxable,1000000)-500000)*0.20;
+  if(taxable>1000000) tax += (taxable-1000000)*0.30;
+  if(taxable<=500000) tax = 0;
+  const sur = taxable>5000000 ? tax*(taxable>10000000?0.15:0.10) : 0;
+  const cess = (tax+sur)*0.04;
+  return {tax:Math.round(tax+sur+cess), taxable:Math.round(taxable), deducted:Math.round(totalDed)};
+}
+
+/* ════════════════════════════════
+   CORE CALCULATIONS
+════════════════════════════════ */
+function calc() {
+  const {age,retAge,lifeExp,savings,pf,ppf,nps,gratuity,sip,sipStep,
+    preRet,postRet,inflation,medInfl,expenses,pension,
+    gross,otherInc,s80c,s80d,s80ccd,hra,lta,homeloan,otherDed,regime,
+    medBuffer,hiPrem,critIll,critAmt,legacy,donation,bigExp} = S;
+
+  const yrs  = Math.max(1, retAge - age);
+  const rYrs = Math.max(1, lifeExp - retAge);
+
+  // Step-up SIP FV
+  const mR = preRet/100/12;
+  let corpSIP = 0;
+  for(let y=0;y<yrs;y++){
+    const ms = sip * Math.pow(1+sipStep/100,y);
+    const ml = (yrs-y)*12;
+    corpSIP += mR>0 ? ms*(Math.pow(1+mR,ml)-1)/mR*(1+mR) : ms*ml;
+  }
+
+  const oneTime = savings+pf+ppf+nps+gratuity;
+  const corpOT  = oneTime * Math.pow(1+preRet/100, yrs);
+  const totalCorpus = corpOT + corpSIP;
+
+  // Big expense PV
+  const bigExpPV = bigExp.reduce((s,e)=>s+e.amount*Math.pow(1+inflation/100,e.year),0);
+  const medBufFV = medBuffer * Math.pow(1+medInfl/100, yrs);
+  const critFV   = critIll ? critAmt : 0;
+  const healthTotal = hiPrem * rYrs;
+  const legacyFV = legacy + donation;
+  const totalDed = bigExpPV + medBufFV + critFV + healthTotal + legacyFV;
+
+  const inflExp  = expenses * Math.pow(1+inflation/100, yrs);
+  const netNeed  = Math.max(0, inflExp - pension);
+  const realR    = (1+postRet/100)/(1+inflation/100)-1;
+  const reqCorpus= realR>0 ? netNeed*12*(1-Math.pow(1+realR,-rYrs))/realR : netNeed*12*rYrs;
+  const totalReq = reqCorpus + totalDed;
+  const surplus  = totalCorpus - totalReq;
+  const onTrack  = surplus >= 0;
+  const readiness= totalReq>0 ? clamp(Math.round((totalCorpus/totalReq)*100),0,150) : 100;
+
+  // Tax
+  const totalInc = gross + otherInc;
+  const oldT = calcTaxOld(totalInc, age, {s80c,s80d,s80ccd,hra,lta,homeloan,otherDed});
+  const newT = calcTaxNew(totalInc);
+  const activeT = regime==='new' ? newT : oldT;
+  const betterR = oldT.tax <= newT.tax ? 'old' : 'new';
+  const taxSaving = Math.abs(oldT.tax - newT.tax);
+  const effRate = totalInc>0 ? (activeT.tax/totalInc*100).toFixed(1) : '0.0';
+  const margRate = (()=>{
+    const t = activeT.taxable;
+    if(t>1500000) return '30%';
+    if(t>1200000) return '20%';
+    if(t>1000000) return '15%';
+    if(t>700000)  return '10%';
+    if(t>300000)  return '5%';
+    return '0%';
+  })();
+
+  // Post-ret tax
+  const retInc = totalCorpus*(postRet/100) + pension*12 + nps*0.4*(postRet/100);
+  const retTaxNew = calcTaxNew(retInc);
+  const retTaxOldVal = (()=>{
+    const ex = 300000; const taxable = Math.max(0, retInc - ex - 50000);
+    let tax=0;
+    if(taxable>200000) tax+=(Math.min(taxable,500000)-200000)*0.05;
+    if(taxable>500000) tax+=(Math.min(taxable,1000000)-500000)*0.20;
+    if(taxable>1000000) tax+=(taxable-1000000)*0.30;
+    if(taxable<=300000) tax=0;
+    return Math.round(tax*1.04);
+  })();
+  const bestRetTax = Math.min(retTaxNew.tax, retTaxOldVal);
+
+  // Income sources
+  const corpIncome = totalCorpus*(postRet/100)/12;
+  const npsAnnuity = nps*0.4*(postRet/100)/12;
+  const totalMonthly = corpIncome + pension + npsAnnuity;
+
+  // Growth series
+  const growthSeries = Array.from({length:yrs+1},(_,y)=>{
+    const ot = oneTime * Math.pow(1+preRet/100,y);
+    let sp=0; const mr=preRet/100/12;
+    for(let i=0;i<y;i++){
+      const ms=sip*Math.pow(1+sipStep/100,i);
+      const ml=(y-i)*12;
+      sp += mr>0?ms*(Math.pow(1+mR,ml)-1)/mR*(1+mR):ms*ml;
+    }
+    return ot+sp;
+  });
+
+  // Drawdown series
+  const traj=[]; let b=totalCorpus;
+  for(let y=0;y<=rYrs;y++){
+    traj.push(Math.max(0,b));
+    b = b*(1+postRet/100) - netNeed*12*Math.pow(1+inflation/100,y);
+  }
+
+  // Marginal rate number
+  const margRateN = activeT.taxable>1000000?0.30:activeT.taxable>500000?0.20:0.05;
+  const save80c   = Math.min(s80c,150000)*margRateN*1.04;
+  const save80d   = Math.min(s80d,age>=60?100000:50000)*margRateN*1.04;
+  const save80ccd = Math.min(s80ccd,50000)*margRateN*1.04;
+
+  return {
+    yrs,rYrs,oneTime,corpOT,corpSIP,totalCorpus,
+    bigExpPV,medBufFV,critFV,healthTotal,legacyFV,totalDed,
+    inflExp,netNeed,realR,reqCorpus,totalReq,surplus,onTrack,readiness,
+    oldT,newT,activeT,betterR,taxSaving,effRate,margRate,
+    retInc,retTaxNew,retTaxOldVal,bestRetTax,
+    corpIncome,npsAnnuity,totalMonthly,
+    growthSeries,traj,margRateN,save80c,save80d,save80ccd,
+    color: readiness>=100?COLORS.teal:readiness>=70?COLORS.gold:COLORS.rose
+  };
+}
+
+/* ════════════════════════════════
+   SLIDER INPUT BUILDER
+════════════════════════════════ */
+function makeSlider(containerId, key, label, min, max, step, opts={}) {
+  const el = document.getElementById(containerId);
+  if(!el) return;
+  const isCur = opts.isCur||false;
+  const isPct = opts.isPct||false;
+  const note  = opts.note||'';
+  const colorVar = opts.color||'var(--gold)';
+
+  el.innerHTML = `
+    <div class="si-wrap">
+      <div class="si-header">
+        <span class="si-label">${label}</span>
+        <div style="display:flex;align-items:center;gap:.4rem">
+          ${isCur?`<span class="si-inr" id="si-inr-${key}" style="color:${colorVar}"></span>`:''}
+          ${note?`<span style="font-size:.6rem;color:var(--muted);font-style:italic">${note}</span>`:''}
+        </div>
+      </div>
+      <div class="si-row">
+        <input type="range" id="si-range-${key}" min="${min}" max="${max}" step="${step}" value="${S[key]}"
+          style="flex:1;background:linear-gradient(90deg,${colorVar} 0%,var(--border2) 0%)"
+          oninput="handleSlider('${key}',this)">
+        <div class="si-box">
+          ${isCur?`<span class="si-prefix" id="si-pfx-${key}">₹</span>`:''}
+          <input type="text" id="si-txt-${key}"
+            class="si-input${isCur?'':' no-prefix'}"
+            style="color:${colorVar}"
+            value="${isCur?S[key].toLocaleString('en-IN'):isPct?S[key]+'%':S[key]}"
+            onfocus="this.select();this.dataset.prev=this.value;this.value='${S[key]}'"
+            onblur="handleText('${key}',this,${min},${max},${isCur},${isPct})"
+            onkeydown="if(event.key==='Enter')this.blur()">
+        </div>
+      </div>
+    </div>`;
+  updateSliderTrack(key);
+}
+
+function handleSlider(key,el){
+  S[key] = Number(el.value);
+  updateSliderTrack(key);
+  render();
+}
+
+function handleText(key,el,min,max,isCur,isPct){
+  let raw = el.value.replace(/[^0-9.]/g,'');
+  let n = parseFloat(raw);
+  if(isNaN(n)) n = S[key];
+  n = clamp(n,min,max);
+  S[key] = n;
+  const rng = document.getElementById(`si-range-${key}`);
+  if(rng){ rng.value = n; updateSliderTrack(key); }
+  el.value = isCur ? n.toLocaleString('en-IN') : isPct ? n+'%' : String(n);
+  render();
+}
+
+function updateSliderTrack(key){
+  const rng = document.getElementById(`si-range-${key}`);
+  const inrEl = document.getElementById(`si-inr-${key}`);
+  const txtEl = document.getElementById(`si-txt-${key}`);
+  const pfxEl = document.getElementById(`si-pfx-${key}`);
+  if(!rng) return;
+  const min=Number(rng.min), max=Number(rng.max), v=Number(rng.value);
+  const pf = clamp((v-min)/(max-min)*100,0,100);
+  const col = rng.style.color || 'var(--gold)';
+  // Extract color from the input style
+  const c = txtEl ? txtEl.style.color : 'var(--gold)';
+  rng.style.background = `linear-gradient(90deg,${c} ${pf}%,var(--border2) ${pf}%)`;
+  if(inrEl) inrEl.textContent = inr(v);
+  if(txtEl && document.activeElement!==txtEl){
+    // detect if it's currency or pct from value
+    if(pfxEl) txtEl.value = v.toLocaleString('en-IN');
+    else if(txtEl.classList.contains('no-prefix')){
+      // check if we need %
+      const val = S[key];
+      if(typeof val==='number' && rng.max<=100) txtEl.value = v+'%';
+      else txtEl.value = String(v);
+    }
+  }
+}
+
+/* ════════════════════════════════
+   CHART REGISTRY
+════════════════════════════════ */
+const charts = {};
+function destroyChart(id){
+  if(charts[id]){charts[id].destroy();delete charts[id];}
+}
+function makeChart(id, type, data, options={}){
+  destroyChart(id);
+  const canvas = document.getElementById(id);
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  charts[id] = new Chart(ctx, {type, data, options:{
+    responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{
+      backgroundColor:'rgba(7,12,20,.95)',
+      borderColor:'rgba(200,164,90,.3)',borderWidth:1,
+      titleColor:'#ccdae8',bodyColor:'#6a8aa8',
+      padding:10,cornerRadius:8,
+      callbacks:{ label: ctx => ` ${inr(ctx.parsed.y??ctx.parsed)}` }
+    }},
+    ...options
+  }});
+}
+
+/* ════════════════════════════════
+   RENDER ENGINE
+════════════════════════════════ */
+function render(){
+  const C = calc();
+  renderHeader(C);
+  renderDashboard(C);
+  renderAnalysis(C);
+  renderTax(C);
+  renderGoals(C);
+  renderScenarios(C);
+  renderConfigSummaries(C);
+}
+
+/* ── Header ── */
+function renderHeader(C){
+  const col = C.color;
+  const el = document.getElementById('hdr-readiness');
+  if(el){ el.textContent = C.readiness+'%'; el.style.color = col; }
+  const dp = document.getElementById('dash-progress');
+  if(dp) dp.style.width = clamp(C.readiness,0,100)+'%';
+}
+
+/* ── Dashboard ── */
+function renderDashboard(C){
+  const {readiness,color,onTrack,surplus,totalCorpus,totalReq,inflExp,netNeed,totalMonthly,activeT,yrs,rYrs,retInc,bestRetTax} = C;
+
+  // Donut
+  renderDonut('donutMain', readiness, color);
+
+  // Status
+  const statusEl = document.getElementById('dash-status');
+  const subEl    = document.getElementById('dash-status-sub');
+  if(statusEl){ statusEl.textContent = readiness>=100?'Retirement Secured':'Action Required'; statusEl.style.color = color; }
+  if(subEl){ subEl.textContent = onTrack
+    ? `Surplus of ${inr(surplus)} · Retire comfortably at ${S.retAge}`
+    : `Shortfall of ${inr(Math.abs(surplus))} · Boost savings or delay retirement`; }
+
+  // KPI cards
+  const kpiMap = [
+    ['kpi-corpus', inr(totalCorpus), `In ${yrs} years`, COLORS.teal],
+    ['kpi-req', inr(totalReq), `For ${rYrs} years`, COLORS.sky],
+    ['kpi-gap', (onTrack?'+':'-')+inr(Math.abs(surplus)), onTrack?'Comfortable buffer':'Gap to bridge', onTrack?COLORS.mint:COLORS.rose],
+    ['kpi-need', inr(Math.round(inflExp)), `${S.inflation}% inflation adj.`, COLORS.lavender],
+    ['kpi-tax', inr(activeT.tax), `${C.effRate}% eff. rate · ${S.regime==='new'?'New':'Old'} regime`, COLORS.gold],
+    ['kpi-income', inr(Math.round(totalMonthly)), 'Corpus + pension/mo', COLORS.mint],
+  ];
+  kpiMap.forEach(([id,v,sub,c],i)=>{
+    const el=document.getElementById(id);
+    if(el){ el.textContent=v; el.style.color=c; }
+    const sEl=document.getElementById(id+'-sub');
+    if(sEl) sEl.textContent=sub;
+  });
+
+  // Mini charts
+  renderMiniGrowth(C);
+  renderMiniAlloc(C);
+
+  // Checklist
+  renderChecklist('dash-checklist', 'checklist-score', C, 6);
+
+  // Insights
+  renderInsights('dash-insights', C, 4);
+}
+
+function renderDonut(id, val, color){
+  const canvas = document.getElementById(id);
+  if(!canvas) return;
+  const v = clamp(val,0,100);
+  destroyChart(id);
+  const ctx = canvas.getContext('2d');
+  charts[id] = new Chart(ctx, {
+    type:'doughnut',
+    data:{
+      datasets:[{
+        data:[v,100-v],
+        backgroundColor:[color,'rgba(26,40,64,.6)'],
+        borderWidth:0, circumference:360
+      }]
+    },
+    options:{
+      responsive:false, cutout:'72%',
+      plugins:{
+        legend:{display:false},
+        tooltip:{enabled:false},
+      }
+    },
+    plugins:[{
+      id:'center',
+      afterDraw(chart){
+        const {ctx,chartArea:{width,height}} = chart;
+        ctx.save();
+        const cx=width/2, cy=height/2;
+        ctx.font="bold 22px 'Playfair Display'";
+        ctx.fillStyle=color;
+        ctx.textAlign='center';
+        ctx.textBaseline='middle';
+        ctx.fillText(val+'%',cx,cy-8);
+        ctx.font="11px 'DM Sans'";
+        ctx.fillStyle='#6a8aa8';
+        ctx.fillText('readiness',cx,cy+12);
+        ctx.restore();
+      }
+    }]
+  });
+}
+
+function renderMiniGrowth(C){
+  const labels = C.growthSeries.map((_,i)=>S.age+i);
+  destroyChart('miniGrowth');
+  const canvas=document.getElementById('miniGrowth');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const grad=ctx.createLinearGradient(0,0,0,160);
+  grad.addColorStop(0,'rgba(46,196,160,.35)');
+  grad.addColorStop(1,'rgba(46,196,160,.0)');
+  charts['miniGrowth']=new Chart(ctx,{
+    type:'line',
+    data:{labels,datasets:[{data:C.growthSeries,borderColor:COLORS.teal,backgroundColor:grad,borderWidth:2.5,pointRadius:0,fill:true,tension:.4}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${inr(c.parsed.y)}`}}},
+      scales:{x:{display:false},y:{display:false,grid:{display:false}}}}
+  });
+}
+
+function renderMiniAlloc(C){
+  const {reqCorpus,bigExpPV,medBufFV,legacyFV} = C;
+  destroyChart('miniAlloc');
+  const canvas=document.getElementById('miniAlloc');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  charts['miniAlloc']=new Chart(ctx,{
+    type:'doughnut',
+    data:{
+      labels:['Living','Goals','Medical','Legacy'],
+      datasets:[{
+        data:[Math.max(0,reqCorpus),Math.max(0,bigExpPV),Math.max(0,medBufFV+C.critFV),Math.max(0,legacyFV)],
+        backgroundColor:[COLORS.lavender,COLORS.amber,COLORS.sky,COLORS.gold],
+        borderWidth:2,borderColor:'#0f1720'
+      }]
+    },
+    options:{responsive:true,maintainAspectRatio:false,cutout:'60%',
+      plugins:{
+        legend:{display:true,position:'bottom',labels:{color:'#6a8aa8',font:{size:10},padding:8,boxWidth:10}},
+        tooltip:{callbacks:{label:c=>`${c.label}: ${inr(c.raw)}`}}
+      }
+    }
+  });
+}
+
+/* ── Checklist ── */
+const CHECKS = [
+  ['80C Fully Utilised (₹1.5L)',         ()=>S.s80c>=150000],
+  ['80D Health Insurance Claimed',        ()=>S.s80d>0],
+  ['NPS 80CCD(1B) Claimed',              ()=>S.s80ccd>=50000],
+  ['On Better Tax Regime',               ()=>S.regime===calc().betterR],
+  ['Emergency Fund (6+ months)',         ()=>S.savings>=S.expenses*6],
+  ['Health Insurance Active',            ()=>S.hiPrem>=12000],
+  ['Step-up SIP Running',                ()=>S.sipStep>0],
+  ['PF / PPF / NPS Contributed',         ()=>S.pf+S.ppf+S.nps>0],
+  ['Big Expenses Planned',               ()=>S.bigExp.length>0],
+  ['Medical Buffer Created',             ()=>S.medBuffer>0],
+  ['Corpus Covers Full Lifespan',        ()=>calc().onTrack],
+  ['Monthly Income Covers Expenses',     ()=>calc().totalMonthly>=calc().inflExp],
+];
+
+function renderChecklist(containerId, scoreId, C, limit=99){
+  const el = document.getElementById(containerId);
+  if(!el) return;
+  const items = limit<CHECKS.length ? CHECKS.slice(0,limit) : CHECKS;
+  const done = items.filter(([,fn])=>fn()).length;
+  if(scoreId){
+    const se=document.getElementById(scoreId);
+    if(se) se.textContent=`${done}/${items.length}`;
+  }
+  el.innerHTML = items.map(([label,fn])=>{
+    const ok = fn();
+    return `<div class="check-item">
+      <div class="check-dot" style="background:${ok?'rgba(61,214,140,.15)':'rgba(232,85,106,.15)'};border:1.5px solid ${ok?COLORS.mint:COLORS.rose};color:${ok?COLORS.mint:COLORS.rose}">${ok?'✓':'✗'}</div>
+      <span style="font-size:.74rem;color:${ok?'var(--text)':'var(--muted)'}">${label}</span>
+    </div>`;
+  }).join('');
+}
+
+/* ── Insights ── */
+function getInsights(C){
+  const {onTrack,surplus,totalCorpus,totalReq,readiness,realR,betterR,taxSaving,inflExp,totalMonthly} = C;
+  const ins = [];
+  ins.push(onTrack
+    ? {icon:'🏆',text:`Corpus ${inr(totalCorpus)} exceeds requirement ${inr(totalReq)} — surplus ${inr(surplus)}.`,color:COLORS.teal}
+    : {icon:'⚠️',text:`Shortfall of ${inr(Math.abs(surplus))}. Consider boosting SIP by ₹${fmt(Math.round(Math.abs(surplus)/((Math.pow(1+S.preRet/100/12,S.yrs*12)-1)/(S.preRet/100/12))))} /mo.`,color:COLORS.rose});
+  ins.push({icon:'🧾',text:`${S.regime==='new'?'New':'Old'} regime: tax ${inr(C.activeT.tax)}/yr. ${betterR!==S.regime?`Switching to ${betterR} regime saves ${inr(taxSaving)}.`:`You're on the optimal regime — saving ${inr(taxSaving)} vs the other.`}`,color:COLORS.gold});
+  ins.push({icon:'💡',text:`Real return (post-inflation) is ${(realR*100).toFixed(2)}%. Your corpus ${realR>0?'grows in real terms':'shrinks in purchasing power'} post-retirement.`,color:realR>0?COLORS.mint:COLORS.rose});
+  ins.push({icon:'🚑',text:`Medical inflation at ${S.medInfl}% will push health costs to ${inr(S.hiPrem*Math.pow(1+S.medInfl/100,15))}/yr in 15 years.`,color:COLORS.sky});
+  ins.push({icon:'📈',text:`Step-up SIP at ${S.sipStep}%/yr grows from ₹${fmt(S.sip)}/mo to ₹${fmt(Math.round(S.sip*Math.pow(1+S.sipStep/100,C.yrs)))}/mo by retirement.`,color:COLORS.amber});
+  ins.push({icon:'🏛️',text:`Legacy goal ${inr(S.legacy+S.donation)} is accounted for. Keep a registered will and updated nominees.`,color:COLORS.lavender});
+  return ins;
+}
+
+function renderInsights(containerId, C, limit=99){
+  const el = document.getElementById(containerId);
+  if(!el) return;
+  const ins = getInsights(C).slice(0,limit);
+  el.innerHTML = ins.map(({icon,text,color})=>`
+    <div class="insight" style="background:${color}0d;border-color:${color}28">
+      <span class="insight-icon">${icon}</span>
+      <span class="insight-text">${text}</span>
+    </div>`).join('');
+}
+
+/* ── Analysis page ── */
+function renderAnalysis(C){
+  const {readiness,color,onTrack,surplus,totalCorpus,totalReq,yrs,rYrs,traj,growthSeries,
+    reqCorpus,bigExpPV,medBufFV,critFV,healthTotal,legacyFV,
+    inflExp,netNeed,corpIncome,npsAnnuity,totalMonthly} = C;
+
+  // Hero donut
+  renderDonut('donutAnalysis', readiness, color);
+
+  // Status
+  const anS=document.getElementById('an-status'),anSb=document.getElementById('an-sub');
+  if(anS){anS.textContent=onTrack?'Retirement Secured':'Action Required';anS.style.color=color;}
+  if(anSb) anSb.textContent = onTrack
+    ? `Surplus ${inr(surplus)} · Retire confidently at ${S.retAge} · ${rYrs} year retirement span`
+    : `Shortfall ${inr(Math.abs(surplus))} · Action needed to secure retirement`;
+
+  // 3 stats
+  const anStats=document.getElementById('an-stats');
+  if(anStats) anStats.innerHTML=[
+    [inr(totalCorpus),'Corpus Built',COLORS.teal],
+    [inr(totalReq),'Total Required',COLORS.sky],
+    [(onTrack?'+':'-')+inr(Math.abs(surplus)),onTrack?'Surplus':'Shortfall',onTrack?COLORS.mint:COLORS.rose]
+  ].map(([v,l,c])=>`<div style="background:var(--surface);border-radius:9px;padding:.5rem .7rem">
+    <div style="font-size:.6rem;color:var(--muted);margin-bottom:.2rem">${l}</div>
+    <div style="font-family:'Playfair Display',serif;font-size:.95rem;font-weight:700;color:${c}">${v}</div>
+  </div>`).join('');
+
+  // Corpus allocation
+  const allocEl=document.getElementById('corpus-alloc');
+  if(allocEl){
+    const rows=[
+      ['Living Expenses Corpus',reqCorpus,COLORS.lavender],
+      ['Big Life Goals',bigExpPV,COLORS.amber],
+      ['Medical Buffer (inflation adj.)',medBufFV,COLORS.sky],
+      ['Health Insurance Premiums',healthTotal,COLORS.mint],
+      ...(S.critIll?[['Critical Illness Reserve',critFV,COLORS.rose]]:[]),
+      ['Legacy / Bequest',legacyFV,COLORS.gold],
+    ];
+    allocEl.innerHTML=rows.map(([l,v,c])=>`
+      <div style="margin-bottom:.65rem">
+        <div style="display:flex;justify-content:space-between;margin-bottom:.25rem">
+          <span style="font-size:.74rem;color:var(--text-sub)">${l}</span>
+          <span style="font-size:.74rem;color:${c};font-weight:700">${inr(v)} <span style="color:var(--muted);font-size:.62rem">(${pct(v,totalReq)}%)</span></span>
+        </div>
+        <div class="prog-wrap"><div class="prog-bar" style="width:${pct(v,totalReq)}%;background:${c}"></div></div>
+      </div>`).join('');
+  }
+
+  // Growth chart
+  const gSub=document.getElementById('growth-sub');
+  if(gSub) gSub.textContent=`Wealth compounding from age ${S.age} to ${S.retAge} with ${S.sipStep}% annual step-up SIP`;
+  const glabels=growthSeries.map((_,i)=>S.age+i);
+  destroyChart('growthChart');
+  const gc=document.getElementById('growthChart');
+  if(gc){
+    const ctx=gc.getContext('2d');
+    const grad=ctx.createLinearGradient(0,0,0,220);
+    grad.addColorStop(0,'rgba(46,196,160,.4)');grad.addColorStop(1,'rgba(46,196,160,.0)');
+    charts['growthChart']=new Chart(ctx,{type:'line',data:{labels:glabels,datasets:[{data:growthSeries,borderColor:COLORS.teal,backgroundColor:grad,borderWidth:2.5,pointRadius:3,pointBackgroundColor:COLORS.teal,fill:true,tension:.4}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${inr(c.parsed.y)}`}}},
+      scales:{x:{ticks:{color:'#3a526a',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'}},y:{ticks:{color:'#3a526a',font:{size:10},callback:v=>inr(v)},grid:{color:'rgba(255,255,255,.04)'}}}}});
+  }
+
+  // Drawdown chart
+  const dSub=document.getElementById('drawdown-sub');
+  if(dSub) dSub.textContent=`Corpus balance from age ${S.retAge} to ${S.lifeExp} — ${traj[traj.length-1]>0?'✅ Corpus survives entire lifespan':'⚠️ Corpus depleted before lifespan'}`;
+  const dlabels=traj.map((_,i)=>S.retAge+i);
+  destroyChart('drawdownChart');
+  const dc=document.getElementById('drawdownChart');
+  if(dc){
+    const ctx=dc.getContext('2d');
+    const grad=ctx.createLinearGradient(0,0,0,220);
+    grad.addColorStop(0,(onTrack?'rgba(46,196,160,':'rgba(232,85,106,')+'.4)');
+    grad.addColorStop(1,(onTrack?'rgba(46,196,160,':'rgba(232,85,106,')+'.0)');
+    charts['drawdownChart']=new Chart(ctx,{type:'line',data:{labels:dlabels,datasets:[
+      {data:traj,borderColor:onTrack?COLORS.teal:COLORS.rose,backgroundColor:grad,borderWidth:2.5,pointRadius:2,fill:true,tension:.3,label:'Balance'},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${inr(c.parsed.y)}`}}},
+    scales:{x:{ticks:{color:'#3a526a',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'}},y:{ticks:{color:'#3a526a',font:{size:10},callback:v=>inr(v)},grid:{color:'rgba(255,255,255,.04)'}}}}});
+  }
+
+  // Income breakdown
+  const incEl=document.getElementById('income-breakdown');
+  const incSources=[
+    {label:'Corpus Interest',value:corpIncome,color:COLORS.teal},
+    {label:'Monthly Pension',value:S.pension,color:COLORS.gold},
+    {label:'NPS Annuity',value:npsAnnuity,color:COLORS.lavender},
+  ];
+  if(incEl){
+    incEl.innerHTML=incSources.map(s=>`
+      <div style="margin-bottom:.6rem">
+        <div style="display:flex;justify-content:space-between;margin-bottom:.2rem">
+          <span style="font-size:.73rem;color:var(--text-sub)">${s.label}</span>
+          <span style="font-size:.73rem;color:${s.color};font-weight:700">${inr(s.value)}/mo</span>
+        </div>
+        <div class="prog-wrap"><div class="prog-bar" style="width:${pct(s.value,totalMonthly)}%;background:${s.color}"></div></div>
+      </div>`).join('')
+    + `<div style="border-top:1px solid var(--border);padding-top:.5rem;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:.73rem;color:var(--text-sub)">Total / Month</span>
+        <span style="font-family:'Playfair Display',serif;font-size:1rem;color:${COLORS.gold};font-weight:700">${inr(totalMonthly)}/mo</span>
+      </div>
+      <div class="alert" style="background:${totalMonthly>=inflExp?'rgba(61,214,140,.08)':'rgba(232,85,106,.08)'};border-color:${totalMonthly>=inflExp?COLORS.mint:COLORS.rose};color:${totalMonthly>=inflExp?COLORS.mint:COLORS.rose};font-size:.72rem;margin-top:.5rem">
+        ${totalMonthly>=inflExp?`✅ Monthly surplus ${inr(totalMonthly-inflExp)}`:`⚠️ Monthly deficit ${inr(inflExp-totalMonthly)} — corpus depletes faster`}
+      </div>`;
+  }
+
+  // Income donut
+  destroyChart('incomeDonut');
+  const id=document.getElementById('incomeDonut');
+  if(id){
+    charts['incomeDonut']=new Chart(id.getContext('2d'),{type:'doughnut',data:{
+      labels:incSources.map(s=>s.label),
+      datasets:[{data:incSources.map(s=>s.value),backgroundColor:incSources.map(s=>s.color),borderWidth:2,borderColor:'#0f1720'}]
+    },options:{responsive:true,maintainAspectRatio:false,cutout:'65%',
+      plugins:{legend:{display:true,position:'bottom',labels:{color:'#6a8aa8',font:{size:9},padding:8,boxWidth:8}},
+      tooltip:{callbacks:{label:c=>`${c.label}: ${inr(c.raw)}/mo`}}}}});
+  }
+
+  // Inflation chart
+  const inflSub=document.getElementById('infl-sub');
+  if(inflSub) inflSub.textContent=`₹${Math.round(S.expenses/1000)}K/mo today → inflation-adjusted every 5 years post-retirement`;
+  const inflData=[0,5,10,15,20].map(y=>S.expenses*Math.pow(1+S.inflation/100,C.yrs+y));
+  const inflLabels=[0,5,10,15,20].map(y=>`Yr ${C.yrs+y}`);
+  destroyChart('inflChart');
+  const ic=document.getElementById('inflChart');
+  if(ic){
+    charts['inflChart']=new Chart(ic.getContext('2d'),{type:'bar',data:{labels:inflLabels,datasets:[{data:inflData,backgroundColor:[COLORS.teal,COLORS.sky,COLORS.gold,COLORS.amber,COLORS.rose],borderRadius:6,borderWidth:0}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${inr(c.parsed.y)}`}}},
+      scales:{x:{ticks:{color:'#3a526a',font:{size:9}},grid:{display:false}},y:{ticks:{color:'#3a526a',font:{size:9},callback:v=>inr(v)},grid:{color:'rgba(255,255,255,.04)'}}}}});
+  }
+
+  // Insights & checklist
+  renderInsights('analysis-insights', C);
+  renderChecklist('analysis-checklist','an-check-score',C);
+}
+
+/* ── Tax page ── */
+function renderTax(C){
+  const {activeT,oldT,newT,betterR,taxSaving,effRate,margRate,retInc,retTaxNew,retTaxOldVal,bestRetTax,save80c,save80d,save80ccd} = C;
+  const totalInc = S.gross+S.otherInc;
+
+  // KPIs
+  const tkpis=document.getElementById('tax-kpis');
+  if(tkpis) tkpis.innerHTML=[
+    ['Gross Income',inr(totalInc),'Annual',COLORS.text],
+    ['Deductions',inr(activeT.deducted),'Tax-saving',COLORS.mint],
+    ['Taxable Income',inr(activeT.taxable),'After deductions',COLORS.amber],
+    ['Tax Payable',inr(activeT.tax),'Inc. surcharge & cess',COLORS.rose],
+    ['Effective Rate',effRate+'%','On gross income',activeT.tax>200000?COLORS.rose:COLORS.teal],
+    ['Marginal Rate',margRate,'Top slab applicable',COLORS.lavender],
+  ].map(([l,v,s,c])=>`<div style="background:var(--surface);border-radius:12px;padding:.8rem .9rem;border:1px solid var(--border)">
+    <div style="font-size:.6rem;color:var(--muted);margin-bottom:.3rem">${l}</div>
+    <div style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:${c}">${v}</div>
+    <div style="font-size:.62rem;color:var(--muted);margin-top:.25rem">${s}</div>
+  </div>`).join('');
+
+  // Banner
+  const trb=document.getElementById('tax-regime-banner');
+  if(trb) trb.innerHTML=`<div class="alert" style="background:${betterR===S.regime?'rgba(61,214,140,.08)':'rgba(245,166,35,.08)'};border-color:${betterR===S.regime?COLORS.mint:COLORS.amber};color:${betterR===S.regime?COLORS.mint:COLORS.amber};text-align:center;font-weight:600">
+    ${betterR===S.regime?`✅ You're on the optimal ${S.regime==='new'?'New':'Old'} regime — saving ${inr(taxSaving)} vs the other`:`💡 Switch to ${betterR==='new'?'New':'Old'} regime in Configure → Tax tab to save ${inr(taxSaving)}/year`}
+  </div>`;
+
+  // Regime compare
+  const rc=document.getElementById('regime-compare');
+  if(rc) rc.innerHTML=[['Old Regime',oldT,COLORS.lavender],['New Regime',newT,COLORS.teal]].map(([l,t,c])=>`
+    <div style="background:var(--surface);border-radius:12px;padding:.9rem;border:1.5px solid ${S.regime===(l.toLowerCase().split(' ')[0])?c:'var(--border2)'}">
+      <div style="font-size:.72rem;color:${c};font-weight:700;margin-bottom:.55rem">${l} ${S.regime===(l.toLowerCase().split(' ')[0])?'(Active)':''}</div>
+      ${[['Deductions',inr(t.deducted),COLORS.mint],['Taxable',inr(t.taxable),COLORS.amber],['Tax + Cess',inr(t.tax),c]].map(([lb,v,cl])=>`
+      <div style="display:flex;justify-content:space-between;padding:.3rem 0;border-bottom:1px dashed var(--border)">
+        <span style="font-size:.72rem;color:var(--text-sub)">${lb}</span>
+        <span style="font-size:.76rem;color:${cl};font-weight:700">${v}</span>
+      </div>`).join('')}
+    </div>`).join('');
+
+  // Tax bar
+  destroyChart('taxBar');
+  const tb=document.getElementById('taxBar');
+  if(tb) charts['taxBar']=new Chart(tb.getContext('2d'),{type:'bar',data:{
+    labels:['Old Regime','New Regime'],
+    datasets:[
+      {label:'Tax',data:[oldT.tax,newT.tax],backgroundColor:[COLORS.lavender,COLORS.teal],borderRadius:8,borderWidth:0},
+    ]
+  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${inr(c.parsed.y)}`}}},
+  scales:{x:{ticks:{color:'#3a526a'},grid:{display:false}},y:{ticks:{color:'#3a526a',callback:v=>inr(v)},grid:{color:'rgba(255,255,255,.04)'}}}}});
+
+  // Slab breakdown
+  const slabEl=document.getElementById('slab-breakdown');
+  if(slabEl){
+    const tx=activeT.taxable;
+    const slabs = S.regime==='new' ? [
+      ['₹0 – ₹3L','0%',Math.min(tx,300000),COLORS.mint],
+      ['₹3L – ₹7L','5%',Math.max(0,Math.min(tx,700000)-300000),COLORS.teal],
+      ['₹7L – ₹10L','10%',Math.max(0,Math.min(tx,1000000)-700000),COLORS.sky],
+      ['₹10L – ₹12L','15%',Math.max(0,Math.min(tx,1200000)-1000000),COLORS.gold],
+      ['₹12L – ₹15L','20%',Math.max(0,Math.min(tx,1500000)-1200000),COLORS.amber],
+      ['Above ₹15L','30%',Math.max(0,tx-1500000),COLORS.rose],
+    ] : [
+      [`₹0 – ₹${S.age>=60?'3':'2.5'}L`,'0%',Math.min(tx,S.age>=60?300000:250000),COLORS.mint],
+      [`₹${S.age>=60?'3':'2.5'}L – ₹5L`,'5%',Math.max(0,Math.min(tx,500000)-(S.age>=60?300000:250000)),COLORS.teal],
+      ['₹5L – ₹10L','20%',Math.max(0,Math.min(tx,1000000)-500000),COLORS.amber],
+      ['Above ₹10L','30%',Math.max(0,tx-1000000),COLORS.rose],
+    ];
+    slabEl.innerHTML = slabs.filter(s=>s[2]>0).map(([range,rate,amount,color])=>`
+      <div class="slab-row${tx>300000&&range.includes('3L')||tx>250000&&range.includes('2.5L')?' slab-highlight':''}">
+        <span style="color:var(--text-sub)">${range}</span>
+        <span style="color:${color};font-weight:700">${rate}</span>
+        <span style="color:${color}">${inr(amount)}</span>
+        <span style="color:var(--muted)">${inr(amount*(parseInt(rate)/100))}</span>
+      </div>
+      <div class="prog-wrap" style="margin:.1rem 0 .35rem"><div class="prog-bar" style="width:${pct(amount,tx)}%;background:${color}"></div></div>
+    `).join('');
+  }
+
+  // Deduction utilisation (old regime)
+  const dedCard=document.getElementById('ded-card');
+  if(dedCard) dedCard.style.display=S.regime==='old'?'block':'none';
+  const dedEl=document.getElementById('ded-breakdown');
+  if(dedEl&&S.regime==='old'){
+    const items=[
+      ['Sec 80C',S.s80c,150000,save80c,COLORS.teal,'ELSS, PPF, EPF, LIC, Home Loan Principal'],
+      ['Sec 80D',S.s80d,S.age>=60?100000:50000,save80d,COLORS.mint,'Health insurance (self, spouse, children, parents)'],
+      ['80CCD(1B) — NPS',S.s80ccd,50000,save80ccd,COLORS.lavender,'Additional NPS contribution over 80C limit'],
+    ];
+    dedEl.innerHTML=items.map(([sec,used,max,saved,c,tip])=>`
+      <div style="margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px dashed var(--border)">
+        <div style="display:flex;justify-content:space-between;margin-bottom:.28rem">
+          <span style="font-size:.76rem;color:var(--text);font-weight:600">${sec}</span>
+          <span style="font-size:.74rem;color:${c};font-weight:700">${inr(used)} / ${inr(max)}</span>
+        </div>
+        <div class="prog-wrap"><div class="prog-bar" style="width:${pct(used,max)}%;background:${c}"></div></div>
+        <div style="display:flex;justify-content:space-between;margin-top:.3rem">
+          <span style="font-size:.66rem;color:var(--muted);flex:1">${tip}</span>
+          <span style="font-size:.68rem;color:${COLORS.mint};margin-left:.5rem">Saves ~${inr(Math.round(saved))}</span>
+        </div>
+        ${used<max?`<div style="font-size:.66rem;color:${COLORS.amber};margin-top:.2rem">⬆ Invest ${inr(max-used)} more to maximise</div>`:''}
+      </div>`).join('')
+    +`<div class="alert" style="background:rgba(61,214,140,.08);border-color:${COLORS.mint};color:${COLORS.mint};text-align:center;font-weight:600">
+        Total Tax Saved via Deductions: ${inr(Math.round(save80c+save80d+save80ccd))}/yr
+      </div>`;
+  }
+
+  // Post-retirement
+  const rts=document.getElementById('ret-tax-summary');
+  if(rts) rts.innerHTML=[
+    ['Annual Corpus Income',inr(Math.round(C.totalCorpus*(S.postRet/100))),COLORS.teal],
+    ['Annual Pension',inr(S.pension*12),COLORS.gold],
+    ['NPS Annuity',inr(S.nps*0.4*(S.postRet/100)),COLORS.lavender],
+    ['Total Retirement Income',inr(Math.round(retInc)),COLORS.sky],
+    ['Min Tax — New Regime',inr(retTaxNew.tax),COLORS.rose],
+    ['Tax — Old Regime (Sr. Citizen)',inr(retTaxOldVal),COLORS.amber],
+    ['Best Option Tax',inr(bestRetTax),COLORS.mint],
+  ].map(([l,v,c],i)=>`<div class="row-stat" style="${i===6?'border-bottom:none':''}">
+    <span class="rs-label${i===3||i===6?' bold':''}">${l}</span>
+    <span class="rs-val" style="color:${c}">${v}</span>
+  </div>`).join('');
+
+  // Withdrawal order
+  const ws=document.getElementById('withdrawal-steps');
+  if(ws) ws.innerHTML=[
+    ['1st','EPF / PPF Withdrawal','Tax-free (EEE regime)','Zero tax liability',COLORS.mint],
+    ['2nd','ELSS Equity MF (within ₹1L LTCG)','0% within exemption','Harvest ₹1L gain/yr tax-free',COLORS.teal],
+    ['3rd','NPS (60% lump sum)','Tax-free','40% annuity taxed at slab',COLORS.sky],
+    ['4th','Equity MF (beyond ₹1L LTCG)','10% LTCG','Better than debt/FD',COLORS.lavender],
+    ['5th','Debt MF / Bonds','Slab rate','Use for predictable income',COLORS.amber],
+    ['6th','FD / Savings Interest','Slab rate — TDS','File ITR to claim refunds',COLORS.rose],
+  ].map(([n,src,tax,tip,c])=>`<div class="step-item">
+    <div class="step-num" style="background:${c}15;border:1px solid ${c}40;color:${c}">${n}</div>
+    <div style="flex:1">
+      <div style="font-size:.75rem;color:var(--text);font-weight:600">${src}</div>
+      <div style="font-size:.68rem;color:${c};margin-top:.1rem">${tax}</div>
+      <div style="font-size:.64rem;color:var(--muted)">${tip}</div>
+    </div>
+  </div>`).join('');
+
+  // Tax tips
+  const tt=document.getElementById('tax-tips');
+  if(tt) tt.innerHTML=[
+    {icon:'🏠',text:'Senior citizens (60+) get ₹3L basic exemption & ₹1L 80D limit. Super seniors (80+) get ₹5L basic exemption.',color:COLORS.sky},
+    {icon:'📊',text:`Spread withdrawals across years — keep taxable income below ₹7L to pay zero tax under new regime's rebate.`,color:COLORS.teal},
+    {icon:'🎁',text:'Gift up to ₹50,000/year to each family member tax-free. Useful for estate planning before retirement.',color:COLORS.gold},
+    {icon:'🔄',text:'Do annual ELSS tax harvesting: book ₹1L gains, reinvest to step up cost basis — avoids large taxable gains later.',color:COLORS.mint},
+    {icon:'🧾',text:'File ITR every year even if income is below taxable limit — helps with loan applications, visa, and TDS refunds.',color:COLORS.lavender},
+  ].map(({icon,text,color})=>`<div class="insight" style="background:${color}0d;border-color:${color}28"><span class="insight-icon">${icon}</span><span class="insight-text">${text}</span></div>`).join('');
+}
+
+/* ── Goals page ── */
+function renderGoals(C){
+  const {bigExpPV,yrs,inflExp} = C;
+
+  // Timeline
+  const gtEl=document.getElementById('goals-timeline');
+  if(gtEl){
+    if(S.bigExp.length===0){
+      gtEl.innerHTML='<div style="text-align:center;font-size:.76rem;color:var(--muted);padding:1rem">No goals added. Go to Configure → Goals tab.</div>';
+    } else {
+      const colors=[COLORS.lavender,COLORS.amber,COLORS.sky,COLORS.mint,COLORS.rose,COLORS.gold];
+      gtEl.innerHTML=S.bigExp.map((e,i)=>{
+        const c=colors[i%colors.length];
+        const fv=e.amount*Math.pow(1+S.inflation/100,e.year);
+        return `<div class="timeline-item">
+          <div class="timeline-badge" style="background:${c}15;border:1px solid ${c}40;color:${c}">${S.retAge+e.year}</div>
+          <div style="flex:1">
+            <div style="font-size:.8rem;color:var(--text);font-weight:600;margin-bottom:.15rem">${e.label}</div>
+            <div style="font-size:.68rem;color:var(--text-sub)">Year ${e.year} of retirement · Base amount: ${inr(e.amount)}</div>
+            <div style="font-size:.71rem;color:${c};margin-top:.1rem">Inflation adjusted: ${inr(fv)}</div>
+          </div>
+        </div>`;}).join('');
+    }
+  }
+  const gtr=document.getElementById('goals-total-row');
+  if(gtr) gtr.innerHTML=`<div class="row-stat" style="border:none"><span class="rs-label bold">Total (Inflation Adjusted)</span><span class="rs-val" style="color:${COLORS.amber}">${inr(bigExpPV)}</span></div>`;
+
+  // Inflation trajectory
+  const itSub=document.getElementById('infl-traj-sub');
+  if(itSub) itSub.textContent=`Your ₹${Math.round(S.expenses/1000)}K/mo expense today grows to ${inr(inflExp)} at retirement, then continues rising`;
+  const inflTData=[0,5,10,15,20].map(y=>S.expenses*Math.pow(1+S.inflation/100,yrs+y));
+  const inflTLabels=[0,5,10,15,20].map(y=>`Age ${S.retAge+y}`);
+  destroyChart('inflTrajChart');
+  const itc=document.getElementById('inflTrajChart');
+  if(itc){
+    const ctx=itc.getContext('2d');
+    const grad=ctx.createLinearGradient(0,0,0,200);
+    grad.addColorStop(0,'rgba(232,85,106,.4)');grad.addColorStop(1,'rgba(232,85,106,.0)');
+    charts['inflTrajChart']=new Chart(ctx,{type:'line',data:{labels:inflTLabels,datasets:[{data:inflTData,borderColor:COLORS.rose,backgroundColor:grad,borderWidth:2.5,pointRadius:5,pointBackgroundColor:COLORS.rose,fill:true,tension:.35}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${inr(c.parsed.y)}`}}},
+      scales:{x:{ticks:{color:'#3a526a',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'}},y:{ticks:{color:'#3a526a',font:{size:10},callback:v=>inr(v)},grid:{color:'rgba(255,255,255,.04)'}}}}});
+  }
+
+  // Medical growth
+  const medData=[0,5,10,15,20].map(y=>S.hiPrem*Math.pow(1+S.medInfl/100,y));
+  destroyChart('medGrowthChart');
+  const mgc=document.getElementById('medGrowthChart');
+  if(mgc) charts['medGrowthChart']=new Chart(mgc.getContext('2d'),{type:'bar',data:{
+    labels:['Yr 0','Yr 5','Yr 10','Yr 15','Yr 20'],
+    datasets:[{data:medData,backgroundColor:[COLORS.mint,COLORS.sky,COLORS.gold,COLORS.amber,COLORS.rose],borderRadius:6,borderWidth:0}]
+  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${inr(c.parsed.y)}`}}},
+  scales:{x:{ticks:{color:'#3a526a',font:{size:10}},grid:{display:false}},y:{ticks:{color:'#3a526a',font:{size:10},callback:v=>inr(v)},grid:{color:'rgba(255,255,255,.04)'}}}}});
+
+  // Legacy
+  const legEl=document.getElementById('legacy-summary');
+  if(legEl) legEl.innerHTML=[
+    ['Bequest / Inheritance to Children',inr(S.legacy),COLORS.gold],
+    ['Charitable Donation / Trust',inr(S.donation),COLORS.mint],
+    ['Total Legacy Goal',inr(S.legacy+S.donation),COLORS.gold],
+  ].map(([l,v,c],i)=>`<div class="row-stat" style="${i===2?'border-bottom:none':''}">
+    <span class="rs-label${i===2?' bold':''}">${l}</span>
+    <span class="rs-val" style="color:${c}">${v}</span>
+  </div>`).join('')
+  +`<div class="alert" style="background:rgba(200,164,90,.06);border-color:rgba(200,164,90,.2);color:var(--text-sub);font-size:.72rem;margin-top:.7rem">
+      🏛️ <strong style="color:var(--gold)">Estate Planning:</strong> Total legacy ${inr(S.legacy+S.donation)} included in retirement plan. Keep a registered will, update nominees in EPF/PPF/NPS/insurance/bank accounts.
+    </div>`;
+}
+
+/* ── Scenarios ── */
+function calcScenario(type){
+  const mods = type==='optimistic'?{r:S.preRet+2,pr:S.postRet+1,inf:S.inflation-1}
+    :type==='pessimistic'?{r:S.preRet-2,pr:S.postRet-1.5,inf:S.inflation+1.5}
+    :{r:S.preRet,pr:S.postRet,inf:S.inflation};
+  const yrs=Math.max(1,S.retAge-S.age), rYrs=Math.max(1,S.lifeExp-S.retAge);
+  const mR=mods.r/100/12;
+  const oneTime=S.savings+S.pf+S.ppf+S.nps+S.gratuity;
+  const corpOT=oneTime*Math.pow(1+mods.r/100,yrs);
+  let corpSIP=0;
+  for(let y=0;y<yrs;y++){
+    const ms=S.sip*Math.pow(1+S.sipStep/100,y);
+    const ml=(yrs-y)*12;
+    corpSIP += mR>0?ms*(Math.pow(1+mR,ml)-1)/mR*(1+mR):ms*ml;
+  }
+  const sc=corpOT+corpSIP;
+  const iE=S.expenses*Math.pow(1+mods.inf/100,yrs);
+  const n=Math.max(0,iE-S.pension);
+  const rR=(1+mods.pr/100)/(1+mods.inf/100)-1;
+  const rC=rR>0?n*12*(1-Math.pow(1+rR,-rYrs))/rR:n*12*rYrs;
+  const base=calc();
+  const rT=rC+base.totalDed;
+  const rd=rT>0?clamp(Math.round((sc/rT)*100),0,150):100;
+  return {corpus:sc,req:rT,surplus:sc-rT,onTrack:sc>=rT,readiness:rd,inflExp:iE,mods};
+}
+
+function renderScenarios(C){
+  const scenarios=[
+    {key:'base',label:'Base Case',icon:'📊',color:COLORS.gold,data:calcScenario('base')},
+    {key:'optimistic',label:'Bull Run',icon:'🚀',color:COLORS.teal,data:calcScenario('optimistic')},
+    {key:'pessimistic',label:'Bear Case',icon:'🌧️',color:COLORS.rose,data:calcScenario('pessimistic')},
+  ];
+  const el=document.getElementById('scenario-cards');
+  if(el) el.innerHTML=scenarios.map(s=>{
+    const {corpus,req,surplus,onTrack,readiness:rd,inflExp,mods}=s.data;
+    return `<div class="scenario-card ${S.scenario===s.key?'':'dim'}" style="border-color:${s.color}30">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem">
+        <div>
+          <div style="font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;color:${s.color}">${s.icon} ${s.label}</div>
+          <div style="font-size:.65rem;color:var(--muted);margin-top:.1rem">Return ${mods.r}% · Post-ret ${mods.pr}% · Inflation ${mods.inf}%</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;color:${s.color};line-height:1">${rd}%</div>
+          <div style="font-size:.6rem;color:var(--muted)">readiness</div>
+        </div>
+      </div>
+      <div class="grid2" style="gap:.5rem;margin-bottom:.7rem">
+        ${[['Corpus',inr(corpus),COLORS.teal],['Required',inr(req),COLORS.sky],
+           [(surplus>=0?'Surplus':'Shortfall'),(surplus>=0?'+':'-')+inr(Math.abs(surplus)),surplus>=0?COLORS.mint:COLORS.rose],
+           ['Infl. Expense',inr(inflExp),COLORS.lavender]].map(([l,v,c])=>
+        `<div style="background:var(--surface);border-radius:8px;padding:.48rem .6rem">
+          <div style="font-size:.6rem;color:var(--muted);margin-bottom:.18rem">${l}</div>
+          <div style="font-size:.82rem;color:${c};font-weight:700">${v}</div>
+        </div>`).join('')}
+      </div>
+      <div style="height:5px;background:var(--border);border-radius:9px">
+        <div style="width:${clamp(rd,0,100)}%;height:100%;background:${s.color};border-radius:9px;transition:width 1.2s ease"></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Comparison bar
+  destroyChart('scenarioBar');
+  const sb=document.getElementById('scenarioBar');
+  if(sb) charts['scenarioBar']=new Chart(sb.getContext('2d'),{type:'bar',data:{
+    labels:['Bear Case','Base Case','Bull Run'],
+    datasets:[{data:scenarios.map(s=>s.data.corpus),backgroundColor:[COLORS.rose,COLORS.gold,COLORS.teal],borderRadius:8,borderWidth:0}]
+  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${inr(c.parsed.y)}`}}},
+  scales:{x:{ticks:{color:'#3a526a'},grid:{display:false}},y:{ticks:{color:'#3a526a',callback:v=>inr(v)},grid:{color:'rgba(255,255,255,.04)'}}}}});
+
+  // What-if
+  const wi=document.getElementById('whatif-table');
+  if(wi){
+    const base=calc();
+    const y2=Math.max(1,S.retAge+2-S.age);
+    const mR2=S.preRet/100/12;
+    const ot2=(S.savings+S.pf+S.ppf+S.nps+S.gratuity)*Math.pow(1+S.preRet/100,y2);
+    let s2=0;for(let i=0;i<y2;i++){const ms=S.sip*Math.pow(1+S.sipStep/100,i);const ml=(y2-i)*12;s2+=mR2>0?ms*(Math.pow(1+mR2,ml)-1)/mR2*(1+mR2):ms*ml;}
+    const extra2yr=ot2+s2-base.totalCorpus;
+    const mR=S.preRet/100/12;
+    let sip5=0;for(let i=0;i<C.yrs;i++){const ms=(S.sip+5000)*Math.pow(1+S.sipStep/100,i);const ml=(C.yrs-i)*12;sip5+=mR>0?ms*(Math.pow(1+mR,ml)-1)/mR*(1+mR):ms*ml;}
+    const extraSIP=sip5-base.corpSIP;
+    wi.innerHTML=[
+      ['Retire 2 years later (age '+(S.retAge+2)+')',inr(extra2yr)+' extra corpus',COLORS.teal],
+      ['Increase SIP by ₹5,000/mo',inr(extraSIP)+' extra corpus',COLORS.mint],
+      ['Switch to better tax regime','Save '+inr(base.taxSaving)+'/yr · '+inr(base.taxSaving*C.yrs)+' over '+C.yrs+' yrs',COLORS.gold],
+      ['Fully utilise 80C+80D+NPS','Save ~'+inr(Math.round((150000-S.s80c+Math.max(0,(S.age>=60?100000:50000)-S.s80d)+Math.max(0,50000-S.s80ccd))*base.margRateN*1.04))+'/yr',COLORS.lavender],
+      ['Reduce expenses by ₹10K/mo',inr(10000*Math.pow(1+S.inflation/100,C.yrs)*12*(base.realR>0?(1-Math.pow(1+base.realR,-C.rYrs))/base.realR:C.rYrs))+' less required',COLORS.sky],
+    ].map(([l,v,c])=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:.45rem 0;border-bottom:1px dashed var(--border);gap:.5rem">
+      <span style="font-size:.73rem;color:var(--text-sub);flex:1">${l}</span>
+      <span style="font-size:.74rem;color:${c};font-weight:700;text-align:right">${v}</span>
+    </div>`).join('');
+  }
+}
+
+/* ── Config summaries ── */
+function renderConfigSummaries(C){
+  // Profile
+  const yrs=Math.max(1,S.retAge-S.age), rYrs=Math.max(1,S.lifeExp-S.retAge);
+  const setPsn=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v+'yr';};
+  setPsn('ps-ytret',yrs); setPsn('ps-retspan',rYrs); setPsn('ps-total',S.lifeExp-S.age);
+  const srEl=document.getElementById('spouse-row');
+  if(srEl) srEl.style.display=document.getElementById('chk-spouse')?.checked?'block':'none';
+
+  // Corpus breakdown
+  const cb=document.getElementById('corpus-breakdown');
+  if(cb){
+    const items=[['Savings/FD/MF',S.savings,COLORS.teal],['EPF/PF',S.pf,COLORS.sky],['PPF',S.ppf,COLORS.mint],['NPS',S.nps,COLORS.lavender],['Gratuity',S.gratuity,COLORS.amber]];
+    cb.innerHTML=`<div style="font-size:.63rem;color:var(--text-sub);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.55rem">Corpus Breakdown</div>`
+    +items.map(([l,v,c])=>`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.35rem">
+      <div style="display:flex;align-items:center;gap:.4rem"><div style="width:7px;height:7px;border-radius:50%;background:${c}"></div><span style="font-size:.74rem;color:var(--text-sub)">${l}</span></div>
+      <div style="display:flex;align-items:center;gap:.45rem">
+        <div style="width:48px;height:3px;background:var(--border);border-radius:9px"><div style="width:${pct(v,C.oneTime)}%;height:100%;background:${c};border-radius:9px"></div></div>
+        <span style="font-size:.75rem;color:${c};font-weight:700;min-width:44px;text-align:right">${inr(v)}</span>
+      </div>
+    </div>`).join('')
+    +`<div style="border-top:1px solid var(--border);padding-top:.5rem;margin-top:.3rem;display:flex;justify-content:space-between">
+        <span style="font-size:.74rem;color:var(--text-sub)">Total One-Time</span>
+        <span style="font-family:'Playfair Display',serif;font-size:.95rem;color:${COLORS.gold};font-weight:700">${inr(C.oneTime)}</span>
+      </div>`;
+  }
+
+  // SIP projection
+  const sp=document.getElementById('sip-projection');
+  if(sp) sp.innerHTML=`📈 Monthly SIP of <strong style="color:var(--gold)">₹${fmt(S.sip)}</strong> growing at <strong style="color:var(--gold)">${S.sipStep}%/yr</strong> reaches <strong style="color:var(--gold)">₹${fmt(Math.round(S.sip*Math.pow(1+S.sipStep/100,yrs)))}/mo</strong> by retirement — building <strong style="color:var(--teal)">${inr(C.corpSIP)}</strong> total.`;
+
+  // Rates summary
+  const rs=document.getElementById('rates-summary');
+  if(rs) rs.innerHTML=[
+    ['Real Return (Post-Inflation)',(C.realR*100).toFixed(2)+'%',C.realR>0?COLORS.mint:COLORS.rose],
+    ['Money Doubles Every (at '+S.preRet+'%)',(72/S.preRet).toFixed(1)+' yrs',COLORS.gold],
+    ['Prices Double Every (at '+S.inflation+'%)',(72/S.inflation).toFixed(1)+' yrs',COLORS.rose],
+    ['SIP Corpus at Retirement',inr(C.corpSIP),COLORS.lavender],
+    ['One-Time Corpus at Retirement',inr(C.corpOT),COLORS.sky],
+  ].map(([l,v,c])=>`<div class="row-stat"><span class="rs-label">${l}</span><span class="rs-val" style="color:${c}">${v}</span></div>`).join('');
+
+  // Lifestyle summary
+  const ls=document.getElementById('lifestyle-summary');
+  if(ls) ls.innerHTML=[
+    ["Today's Expenses",inr(S.expenses),COLORS.textSub],
+    [`At Retirement (${S.inflation}% inflation)`,inr(C.inflExp),COLORS.lavender],
+    ['Less: Pension','-'+inr(S.pension),COLORS.gold],
+    ['Net Monthly Need',inr(C.netNeed),COLORS.rose],
+    ['Annual Need',inr(C.netNeed*12),COLORS.rose],
+  ].map(([l,v,c],i)=>`<div class="row-stat" style="${i===4?'border-bottom:none':''}"><span class="rs-label${i===3?' bold':''}">${l}</span><span class="rs-val" style="color:${c}">${v}</span></div>`).join('');
+
+  // Tax live
+  const tl=document.getElementById('tax-live');
+  if(tl) tl.innerHTML=`<div style="font-size:.68rem;color:${COLORS.gold};font-weight:700;margin-bottom:.6rem">⚡ Live Comparison</div>
+    <div class="grid2" style="gap:.45rem;margin-bottom:.5rem">
+      ${[['Old Regime',C.oldT,COLORS.lavender],['New Regime',C.newT,COLORS.teal]].map(([l,t,c])=>`
+      <div style="background:var(--surface);border-radius:9px;padding:.65rem .8rem;border:1px solid ${c}30">
+        <div style="font-size:.64rem;color:${c};font-weight:700;margin-bottom:.3rem">${l}</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:700;color:${c}">${inr(t.tax)}</div>
+        <div style="font-size:.6rem;color:var(--muted)">Taxable: ${inr(t.taxable)}</div>
+      </div>`).join('')}
+    </div>
+    <div class="alert" style="background:${C.betterR==='new'?'rgba(46,196,160,.08)':'rgba(149,128,245,.08)'};border-color:${C.betterR==='new'?COLORS.teal:COLORS.lavender};color:${C.betterR==='new'?COLORS.teal:COLORS.lavender};text-align:center;font-weight:600;font-size:.73rem">
+      🏆 ${C.betterR==='new'?'New':'Old'} Regime is better — saves ${inr(C.taxSaving)}
+    </div>`;
+
+  // Legacy total
+  const lt=document.getElementById('legacy-total');
+  if(lt) lt.textContent=inr(S.legacy+S.donation);
+
+  // Big exp total
+  const bt=document.getElementById('big-total');
+  if(bt) bt.textContent='Total (Inflation Adj.): '+inr(C.bigExpPV);
+
+  // Medical summary
+  const ms=document.getElementById('med-summary');
+  if(ms) ms.innerHTML=[
+    ['Medical Buffer at Retirement',inr(C.medBufFV),COLORS.sky],
+    ['Health Premiums (Total)',inr(S.hiPrem*C.rYrs),COLORS.mint],
+    ...(S.critIll?[['Critical Illness Reserve',inr(C.critFV),COLORS.rose]]:[]),
+    ['Total Medical Allocation',inr(C.medBufFV+C.critFV+S.hiPrem*C.rYrs),COLORS.sky],
+  ].map(([l,v,c],i,arr)=>`<div class="row-stat" style="${i===arr.length-1?'border-bottom:none':''}"><span class="rs-label${i===arr.length-1?' bold':''}">${l}</span><span class="rs-val" style="color:${c}">${v}</span></div>`).join('');
+
+  // Med chart
+  destroyChart('medChart');
+  const mc=document.getElementById('medChart');
+  if(mc) charts['medChart']=new Chart(mc.getContext('2d'),{type:'bar',data:{
+    labels:['Now','Yr 5','Yr 10','Yr 15','Yr 20'],
+    datasets:[{data:[0,5,10,15,20].map(y=>S.hiPrem*Math.pow(1+S.medInfl/100,y)),backgroundColor:[COLORS.mint,COLORS.sky,COLORS.gold,COLORS.amber,COLORS.rose],borderRadius:6,borderWidth:0}]
+  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${inr(c.parsed.y)}`}}},
+  scales:{x:{ticks:{color:'#3a526a',font:{size:10}},grid:{display:false}},y:{ticks:{color:'#3a526a',font:{size:10},callback:v=>inr(v)},grid:{color:'rgba(255,255,255,.04)'}}}}});
+}
+
+/* ════════════════════════════════
+   BIG EXPENSE MANAGER
+════════════════════════════════ */
+function renderBigExpList(){
+  const el=document.getElementById('big-exp-list');
+  if(!el)return;
+  const colors=[COLORS.lavender,COLORS.amber,COLORS.sky,COLORS.mint,COLORS.rose,COLORS.gold];
+  if(S.bigExp.length===0){el.innerHTML='<div style="text-align:center;font-size:.76rem;color:var(--muted);padding:.8rem">No goals added yet.</div>';return;}
+  el.innerHTML=S.bigExp.map((e,i)=>{
+    const c=colors[i%colors.length];
+    return `<div class="big-exp-card">
+      <button onclick="removeBigExp(${e.id})" style="position:absolute;top:8px;right:8px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:.9rem;line-height:1">✕</button>
+      <input value="${e.label}" onchange="updateBigExp(${e.id},'label',this.value)"
+        style="width:calc(100% - 20px);background:transparent;border:none;outline:none;color:var(--text);font-size:.8rem;font-weight:600;margin-bottom:.55rem;font-family:'DM Sans'">
+      <div id="be-year-${e.id}"></div>
+      <div id="be-amt-${e.id}"></div>
+      <div style="font-size:.69rem;color:${c}">Inflation adj. FV: ${inr(e.amount*Math.pow(1+S.inflation/100,e.year))}</div>
+    </div>`;
+  }).join('');
+  S.bigExp.forEach((e,i)=>{
+    const c=colors[i%colors.length];
+    makeBigSlider(`be-year-${e.id}`,e.id,'year','Year After Retirement',1,Math.max(1,S.lifeExp-S.retAge),1,c);
+    makeBigSlider(`be-amt-${e.id}`,e.id,'amount','Amount',10000,20000000,50000,c,true);
+  });
+}
+
+function makeBigSlider(containerId,expId,field,label,min,max,step,color,isCur=false){
+  const el=document.getElementById(containerId); if(!el)return;
+  const e=S.bigExp.find(x=>x.id===expId); if(!e)return;
+  const val=e[field];
+  const frac=clamp((val-min)/(max-min)*100,0,100);
+  el.innerHTML=`<div class="si-wrap" style="margin-bottom:.8rem">
+    <div class="si-header">
+      <span class="si-label">${label}</span>
+      ${isCur?`<span style="font-size:.68rem;color:${color};font-weight:600">${inr(val)}</span>`:''}
+    </div>
+    <div class="si-row">
+      <input type="range" min="${min}" max="${max}" step="${step}" value="${val}"
+        style="flex:1;background:linear-gradient(90deg,${color} ${frac}%,var(--border2) ${frac}%)"
+        oninput="updateBigExp(${expId},'${field}',Number(this.value));updateBigSlider(this,${expId},'${field}',${isCur})">
+      <div class="si-box">
+        ${isCur?`<span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.76rem;pointer-events:none">₹</span>`:''}
+        <input type="text" value="${isCur?val.toLocaleString('en-IN'):val}"
+          style="width:${isCur?96:58}px;padding:.36rem ${isCur?'.4rem .36rem 1.3rem':'.45rem'};background:var(--surface);border:1.5px solid var(--border2);border-radius:8px;color:${color};font-size:.8rem;font-weight:700;text-align:right;outline:none;font-family:'DM Sans'"
+          onfocus="this.select()"
+          onblur="updateBigExpText(${expId},'${field}',this.value,${min},${max},${isCur})"
+          onkeydown="if(event.key==='Enter')this.blur()">
+      </div>
+    </div>
+  </div>`;
+}
+
+function updateBigSlider(rng,id,field,isCur){
+  const v=Number(rng.value),min=Number(rng.min),max=Number(rng.max);
+  const frac=clamp((v-min)/(max-min)*100,0,100);
+  rng.style.background=`linear-gradient(90deg,${rng.style.color||'var(--gold)'} ${frac}%,var(--border2) ${frac}%)`;
+  render();
+}
+
+function updateBigExp(id,field,val){
+  const e=S.bigExp.find(x=>x.id===id); if(e){e[field]=val;render();}
+}
+function updateBigExpText(id,field,txt,min,max,isCur){
+  let n=parseFloat(String(txt).replace(/,/g,''));
+  if(isNaN(n))n=S.bigExp.find(x=>x.id===id)?.[field]||min;
+  n=clamp(n,min,max);
+  updateBigExp(id,field,n);
+  renderBigExpList();
+  render();
+}
+function addBigExp(){
+  S.bigExp.push({id:Date.now(),label:'New Goal',year:5,amount:500000});
+  renderBigExpList();render();
+}
+function removeBigExp(id){
+  S.bigExp=S.bigExp.filter(e=>e.id!==id);
+  renderBigExpList();render();
+}
+
+/* ════════════════════════════════
+   NAVIGATION
+════════════════════════════════ */
+const PAGE_TITLES = {
+  dashboard:['Dashboard','Your retirement overview'],
+  configure:['Configure Inputs','Adjust your parameters'],
+  analysis:['Corpus Analysis','Detailed retirement projections'],
+  tax:['Tax Planning','Income tax analysis & strategy'],
+  goals:['Goals & Timeline','Big expenses, medical & legacy'],
+  scenarios:['Scenario Analysis','What-if projections'],
+};
+
+function showPage(pageId, clickedEl){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll('.mnav-item').forEach(n=>n.classList.remove('active'));
+
+  const page=document.getElementById('page-'+pageId);
+  if(page) page.classList.add('active');
+
+  if(clickedEl){
+    if(clickedEl.classList.contains('nav-item')||clickedEl.classList.contains('mnav-item'))
+      clickedEl.classList.add('active');
+    // Also sync sidebar/mobile
+    document.querySelectorAll(`[data-page="${pageId}"]`).forEach(el=>el.classList.add('active'));
+  }
+
+  const [title,sub]=PAGE_TITLES[pageId]||['—','—'];
+  document.getElementById('page-title').textContent=title;
+  document.getElementById('page-sub').textContent=sub;
+
+  closeSidebar();
+  render();
+}
+
+function switchTab(group, index, btn){
+  const tabs=document.querySelectorAll(`#cfg-tab-${0},#cfg-tab-1,#cfg-tab-2,#cfg-tab-3,#cfg-tab-4,#cfg-tab-5,#cfg-tab-6`);
+  tabs.forEach(t=>t.classList.remove('active'));
+  const t=document.getElementById(`${group}-tab-${index}`);
+  if(t) t.classList.add('active');
+  document.querySelectorAll('#config-tabs .tab-pill').forEach(p=>p.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  render();
+}
+
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('show');
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
+
+function setRegime(r){
+  S.regime=r;
+  document.getElementById('btn-new').classList.toggle('active',r==='new');
+  document.getElementById('btn-old').classList.toggle('active',r==='old');
+  const od=document.getElementById('old-deductions');
+  if(od) od.style.display=r==='old'?'block':'none';
+  render();
+}
+
+function setScenario(s){
+  S.scenario=s;
+  ['base','opt','pes'].forEach(k=>{
+    const btn=document.getElementById('sc-'+k);
+    const key=k==='opt'?'optimistic':k==='pes'?'pessimistic':'base';
+    if(btn) btn.classList.toggle('active',key===s);
+  });
+  render();
+}
+
+/* ════════════════════════════════
+   INIT — Build all sliders
+════════════════════════════════ */
+function initSliders(){
+  makeSlider('si-age','age','Current Age',25,65,1,{color:'var(--sky)'});
+  makeSlider('si-retage','retAge','Planned Retirement Age',26,75,1,{color:'var(--lavender)'});
+  makeSlider('si-lifeexp','lifeExp','Life Expectancy',55,100,1,{color:'var(--rose)'});
+  makeSlider('si-spouse','spouseAge','Spouse Current Age',25,70,1,{color:'var(--rose)'});
+  makeSlider('si-savings','savings','Savings / FD / Mutual Funds',0,20000000,50000,{isCur:true,color:'var(--teal)'});
+  makeSlider('si-pf','pf','EPF / Provident Fund',0,10000000,50000,{isCur:true,color:'var(--sky)'});
+  makeSlider('si-ppf','ppf','PPF Balance',0,5000000,25000,{isCur:true,color:'var(--mint)'});
+  makeSlider('si-nps','nps','NPS Corpus',0,10000000,50000,{isCur:true,color:'var(--lavender)'});
+  makeSlider('si-gratuity','gratuity','Expected Gratuity',0,5000000,25000,{isCur:true,color:'var(--amber)'});
+  makeSlider('si-sip','sip','Monthly SIP / Investment',0,300000,1000,{isCur:true,color:'var(--gold)'});
+  makeSlider('si-sipstep','sipStep','Annual SIP Step-up %',0,25,1,{isPct:true,color:'var(--gold-lt)'});
+  makeSlider('si-preret','preRet','Pre-Retirement Return %',1,20,0.5,{isPct:true,color:'var(--gold)'});
+  makeSlider('si-postret','postRet','Post-Retirement Return %',1,12,0.5,{isPct:true,color:'var(--teal)'});
+  makeSlider('si-inflation','inflation','Consumer Inflation %',2,15,0.5,{isPct:true,color:'var(--rose)'});
+  makeSlider('si-medinfl','medInfl','Medical Inflation %',4,20,0.5,{isPct:true,color:'var(--sky)'});
+  makeSlider('si-expenses','expenses','Current Monthly Expenses',10000,500000,1000,{isCur:true,color:'var(--lavender)'});
+  makeSlider('si-pension','pension','Expected Monthly Pension',0,200000,500,{isCur:true,color:'var(--gold)'});
+  makeSlider('si-gross','gross','Annual Gross Salary / Income',100000,10000000,50000,{isCur:true,color:'var(--gold)'});
+  makeSlider('si-otherinc','otherInc','Other Income (Interest / Rent)',0,2000000,10000,{isCur:true,color:'var(--amber)'});
+  makeSlider('si-80c','s80c','Sec 80C (PPF/ELSS/LIC/EPF)',0,150000,5000,{isCur:true,color:'var(--teal)',note:'max ₹1.5L'});
+  makeSlider('si-80d','s80d','Sec 80D (Health Insurance)',0,100000,5000,{isCur:true,color:'var(--mint)',note:'max ₹50K/₹1L sr.'});
+  makeSlider('si-80ccd','s80ccd','Sec 80CCD(1B) — NPS Extra',0,50000,5000,{isCur:true,color:'var(--lavender)',note:'max ₹50K'});
+  makeSlider('si-hra','hra','HRA Exempt',0,600000,10000,{isCur:true,color:'var(--sky)'});
+  makeSlider('si-lta','lta','LTA Exempt',0,100000,5000,{isCur:true,color:'var(--rose)'});
+  makeSlider('si-homeloan','homeloan','Home Loan Interest (Sec 24b)',0,200000,10000,{isCur:true,color:'var(--amber)',note:'max ₹2L'});
+  makeSlider('si-otherded','otherDed','Other Deductions (80E/80G etc)',0,200000,5000,{isCur:true,color:'var(--gold)'});
+  makeSlider('si-medbuf','medBuffer','Medical Emergency Fund',100000,10000000,100000,{isCur:true,color:'var(--sky)',note:'separate from corpus'});
+  makeSlider('si-hiprem','hiPrem','Annual Health Insurance Premium',5000,200000,1000,{isCur:true,color:'var(--mint)'});
+  makeSlider('si-critamt','critAmt','Critical Illness Reserve',500000,10000000,100000,{isCur:true,color:'var(--rose)'});
+  makeSlider('si-legacy','legacy','Bequest / Inheritance to Children',0,20000000,100000,{isCur:true,color:'var(--gold)'});
+  makeSlider('si-donation','donation','Charitable Donation / Trust',0,5000000,50000,{isCur:true,color:'var(--mint)'});
+
+  // Wire up checkboxes
+  document.getElementById('chk-spouse').addEventListener('change',e=>{S.hasSpouse=e.target.checked;render();});
+  document.getElementById('chk-crit').addEventListener('change',e=>{
+    S.critIll=e.target.checked;
+    document.getElementById('crit-row').style.display=e.target.checked?'block':'none';
+    render();
+  });
+
+  renderBigExpList();
+}
+
+/* ── Boot ── */
+window.addEventListener('DOMContentLoaded',()=>{
+  initSliders();
+  render();
+  // Show dashboard initially
+  showPage('dashboard', document.querySelector('[data-page="dashboard"]'));
+});
+</script>
+</body>
+</html>
