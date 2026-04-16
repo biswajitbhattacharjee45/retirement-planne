@@ -1317,18 +1317,22 @@ function makeSlider(containerId, key, label, min, max, step, opts={}) {
         <input type="range" id="si-range-${key}" min="${min}" max="${max}" step="${step}" value="${S[key]}"
           style="flex:1;background:linear-gradient(90deg,${colorVar} 0%,var(--border2) 0%)"
           oninput="handleSlider('${key}',this)">
-        <div class="si-box">
-          ${isCur?`<span class="si-prefix" id="si-pfx-${key}">₹</span>`:''}
-          <input type="text" id="si-txt-${key}"
-            class="si-input${isCur?'':' no-prefix'}"
-            style="color:${colorVar}"
-            data-iscur="${isCur}" data-ispct="${isPct}"
-            value="${isCur?S[key].toLocaleString('en-IN'):isPct?S[key]+'%':S[key]}"
-            inputmode="decimal"
-            onfocus="siOnFocus(this,'${key}')"
-            onblur="siOnBlur(this,'${key}',${min},${max})"
-            onkeydown="if(event.key==='Enter')this.blur()"
-            onclick="showNumpad('${key}',${min},${max})">
+        <div class="si-box" style="display:flex;align-items:center;gap:4px">
+          <div style="position:relative">
+            ${isCur?`<span class="si-prefix" id="si-pfx-${key}">₹</span>`:''}
+            <input type="text" id="si-txt-${key}"
+              class="si-input${isCur?'':' no-prefix'}"
+              style="color:${colorVar}"
+              data-iscur="${isCur}" data-ispct="${isPct}"
+              value="${isCur?S[key].toLocaleString('en-IN'):isPct?S[key]+'%':S[key]}"
+              inputmode="none"
+              readonly
+              onclick="showNumpad('${key}',${min},${max})">
+          </div>
+          <button onclick="showNumpad('${key}',${min},${max})"
+            style="background:rgba(200,164,90,.12);border:1px solid rgba(200,164,90,.25);
+                   border-radius:7px;color:var(--gold);font-size:.85rem;padding:4px 7px;
+                   cursor:pointer;flex-shrink:0;line-height:1" title="Open calculator">🔢</button>
         </div>
       </div>
     </div>`;
@@ -1398,293 +1402,183 @@ function updateSliderTrack(key){
 }
 
 /* ════════════════════════════════
-   NUMERIC KEYPAD — clean rewrite
+   NUMERIC KEYPAD — simple & reliable
 ════════════════════════════════ */
-const NP = {
-  key: null, min: 0, max: 99999999,
-  raw: '',          // the raw digit string the user is building
-  isCur: false, isPct: false, isFirst: true,
-  // isFirst = true means next digit press REPLACES the pre-filled value
-};
+var npKey=null, npMin=0, npMax=99999999, npIsCur=false, npIsPct=false, npStr='0';
 
 function showNumpad(key, min, max){
-  // Close any existing pad first
-  const existing = document.getElementById('numpad-overlay');
-  if(existing) existing.remove();
+  var old = document.getElementById('numpad-overlay');
+  if(old) old.remove();
 
-  const txtEl  = document.getElementById('si-txt-'+key);
-  NP.key    = key;
-  NP.min    = Number(min);
-  NP.max    = Number(max);
-  NP.isCur  = txtEl ? txtEl.dataset.iscur === 'true' : false;
-  NP.isPct  = txtEl ? txtEl.dataset.ispct === 'true' : false;
-  NP.raw    = String(S[key]);   // pre-fill with current value
-  NP.isFirst = true;            // first keypress wipes the pre-fill
+  npKey   = key;
+  npMin   = Number(min);
+  npMax   = Number(max);
+  var txtEl = document.getElementById('si-txt-'+key);
+  npIsCur = txtEl ? txtEl.dataset.iscur==='true' : false;
+  npIsPct = txtEl ? txtEl.dataset.ispct==='true' : false;
+  npStr   = String(S[key]);
 
-  const label = txtEl
-    ? (txtEl.closest('.si-wrap')?.querySelector('.si-label')?.textContent || key)
-    : key;
-  const color = txtEl ? txtEl.style.color : 'var(--gold)';
+  var labelEl = txtEl ? txtEl.closest('.si-wrap') : null;
+  var label   = labelEl ? labelEl.querySelector('.si-label').textContent : '';
+  var color   = txtEl ? txtEl.style.color : '#c8a45a';
 
-  // Build shortcut list
-  let shortcuts = [];
-  if(NP.isCur){
-    const candidates = [10000,25000,50000,100000,500000,1000000,2500000,5000000,10000000,20000000];
-    shortcuts = candidates.filter(s => s >= NP.min && s <= NP.max).slice(0,6);
-  } else if(!NP.isPct){
-    const mid = Math.round((NP.min + NP.max) / 2);
-    shortcuts = [NP.min, mid, NP.max];
+  /* shortcuts */
+  var sc = [];
+  if(npIsCur){
+    var cands=[10000,25000,50000,100000,200000,500000,1000000,2500000,5000000,10000000,20000000];
+    sc = cands.filter(function(v){ return v>=npMin && v<=npMax; }).slice(0,6);
+  } else if(npIsPct){
+    sc = [1,2,4,5,6,7,8,10,12,15].filter(function(v){ return v>=npMin && v<=npMax; });
   } else {
-    // % field quick values
-    shortcuts = [1,5,6,7,8,10,12,15].filter(s => s >= NP.min && s <= NP.max);
+    var mid=Math.round((npMin+npMax)/2);
+    sc = [npMin, mid, npMax];
   }
 
-  const shortcutHTML = shortcuts.map(s => `
-    <button class="np-sc" onclick="npSet(${s})"
-      style="padding:.28rem .6rem;background:rgba(200,164,90,.09);border:1px solid rgba(200,164,90,.22);
-             border-radius:20px;font-size:.66rem;color:var(--gold);cursor:pointer;white-space:nowrap;
-             font-family:'DM Sans'">
-      ${NP.isCur ? inr(s) : s+(NP.isPct?'%':'')}
-    </button>`).join('');
+  var scHTML = sc.map(function(v){
+    var lbl = npIsCur ? inr(v) : (npIsPct ? v+'%' : String(v));
+    return '<button onclick="npSet('+v+')" style="padding:.25rem .55rem;'
+      +'background:rgba(200,164,90,.1);border:1px solid rgba(200,164,90,.25);'
+      +'border-radius:18px;font-size:.65rem;color:#c8a45a;cursor:pointer;'
+      +'font-family:DM Sans,sans-serif;white-space:nowrap">'+lbl+'</button>';
+  }).join('');
 
-  // Digit keys layout
-  const digitKeys = [7,8,9,4,5,6,1,2,3];
-  const digitBtns = digitKeys.map(n => `
-    <button class="np-key np-digit"
-      ontouchstart="npTouchPress(event,'${n}')"
-      ontouchend="npTouchEnd(event)"
-      onmousedown="npPress('${n}')">
-      ${n}
-    </button>`).join('');
-
-  const overlay = document.createElement('div');
-  overlay.id = 'numpad-overlay';
-  overlay.innerHTML = `
-  <style>
-    #np-sheet{
-      width:100%;max-width:420px;
-      background:linear-gradient(160deg,#0e1b2b,#080e18);
-      border:1px solid #203050;border-radius:22px 22px 0 0;
-      padding:1.1rem .9rem 1.6rem;
-      user-select:none;-webkit-user-select:none;
-    }
-    .np-key{
-      background:rgba(255,255,255,.055);border:1px solid #1e2f42;
-      border-radius:13px;font-size:1.25rem;font-weight:700;
-      color:#ccdae8;cursor:pointer;padding:.9rem .5rem;
-      font-family:'Playfair Display',serif;
-      transition:background .1s,transform .1s;
-      -webkit-tap-highlight-color:transparent;
-      touch-action:manipulation;
-    }
-    .np-key:active,.np-key.pressed{
-      background:rgba(200,164,90,.22)!important;
-      transform:scale(.91);
-    }
-    .np-del{background:rgba(232,85,106,.09);border-color:rgba(232,85,106,.28);color:#e8556a}
-    .np-del:active,.np-del.pressed{background:rgba(232,85,106,.25)!important}
-    .np-dot{color:#6a8aa8}
-    .np-sc:active{background:rgba(200,164,90,.22)!important}
-    #np-val-box{
-      background:#0c1420;border:2px solid ${color};border-radius:13px;
-      padding:.65rem 1rem;margin-bottom:.85rem;
-      display:flex;align-items:center;justify-content:flex-end;gap:.5rem;
-      min-height:3.2rem;overflow:hidden;
-    }
-    #np-val-main{
-      font-family:'Playfair Display',serif;font-size:1.7rem;font-weight:700;
-      color:${color};line-height:1;word-break:break-all;text-align:right;
-    }
-    #np-val-hint{font-size:.68rem;color:#3a526a;margin-top:.25rem;text-align:right}
-    .np-done{
-      background:linear-gradient(135deg,#8a6d30,#c8a45a,#e2c07e);
-      border:none;border-radius:13px;color:#080c12;
-      font-size:.95rem;font-weight:800;cursor:pointer;
-      font-family:'Playfair Display',serif;padding:.85rem;
-      touch-action:manipulation;-webkit-tap-highlight-color:transparent;
-    }
-    .np-done:active{filter:brightness(.88);transform:scale(.96)}
-    .np-clear{
-      background:rgba(232,85,106,.09);border:1px solid rgba(232,85,106,.28);
-      border-radius:13px;color:#e8556a;font-size:.82rem;font-weight:600;
-      cursor:pointer;padding:.85rem;
-      touch-action:manipulation;-webkit-tap-highlight-color:transparent;
-    }
-    .np-clear:active{background:rgba(232,85,106,.22)!important}
-  </style>
-  <div id="np-sheet">
-    <!-- Header -->
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem">
-      <div>
-        <div style="font-size:.6rem;color:#3a526a;text-transform:uppercase;letter-spacing:.12em;margin-bottom:.15rem">${label}</div>
-        <div style="font-size:.68rem;color:#6a8aa8">
-          Range: <span style="color:${color}">${NP.isCur?inr(NP.min):NP.min}</span>
-          &nbsp;–&nbsp;
-          <span style="color:${color}">${NP.isCur?inr(NP.max):NP.max}</span>
-        </div>
-      </div>
-      <button onclick="closeNumpad()"
-        style="background:rgba(255,255,255,.06);border:1px solid #1e2f42;border-radius:8px;
-               color:#6a8aa8;font-size:1rem;cursor:pointer;padding:.3rem .6rem;line-height:1">✕</button>
-    </div>
-
-    <!-- Display -->
-    <div id="np-val-box">
-      ${NP.isCur ? `<span style="font-size:1rem;color:#3a526a;flex-shrink:0">₹</span>` : ''}
-      <div>
-        <div id="np-val-main"></div>
-        <div id="np-val-hint"></div>
-      </div>
-    </div>
-
-    <!-- Shortcuts -->
-    ${shortcuts.length ? `<div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:.7rem">${shortcutHTML}</div>` : ''}
-
-    <!-- Grid: 9 digit keys + dot + 0 + del -->
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.42rem;margin-bottom:.5rem">
-      ${digitBtns}
-      <button class="np-key np-dot"
-        ontouchstart="npTouchPress(event,'.')"
-        ontouchend="npTouchEnd(event)"
-        onmousedown="npPress('.')">·</button>
-      <button class="np-key np-digit"
-        ontouchstart="npTouchPress(event,'0')"
-        ontouchend="npTouchEnd(event)"
-        onmousedown="npPress('0')">0</button>
-      <button class="np-key np-del"
-        ontouchstart="npTouchPress(event,'back')"
-        ontouchend="npTouchEnd(event)"
-        onmousedown="npPress('back')">⌫</button>
-    </div>
-
-    <!-- Action row -->
-    <div style="display:grid;grid-template-columns:1fr 1.6fr;gap:.45rem;margin-top:.3rem">
-      <button class="np-clear" onclick="npClear()">Clear</button>
-      <button class="np-done"  onclick="npConfirm()">Done ✓</button>
-    </div>
-  </div>`;
-
-  overlay.style.cssText = `
-    position:fixed;inset:0;z-index:10000;
-    background:rgba(6,9,20,.82);backdrop-filter:blur(10px);
-    display:flex;align-items:flex-end;justify-content:center;
-    animation:fadeIn .18s ease;
-  `;
-  overlay.addEventListener('click', e => { if(e.target===overlay) closeNumpad(); });
-  // Prevent overlay scroll-through on mobile
-  overlay.addEventListener('touchmove', e => e.preventDefault(), {passive:false});
-
-  document.body.appendChild(overlay);
-  npRefreshDisplay();
-}
-
-/* Touch handling — prevent ghost click double-fires */
-let _npTouchActive = false;
-function npTouchPress(e, key){
-  e.preventDefault();
-  _npTouchActive = true;
-  e.currentTarget.classList.add('pressed');
-  npPress(key);
-}
-function npTouchEnd(e){
-  e.preventDefault();
-  e.currentTarget.classList.remove('pressed');
-  setTimeout(()=>{ _npTouchActive = false; }, 350);
-}
-
-/* Core press logic */
-function npPress(key){
-  if(_npTouchActive && !key) return; // guard ghost clicks
-
-  if(NP.isFirst && key !== 'back'){
-    // First real keystroke → wipe pre-filled value
-    NP.raw   = '';
-    NP.isFirst = false;
+  /* single key button builder */
+  function kb(val, lbl){
+    var isDel = val==='back';
+    var isDot = val==='.';
+    var bg = isDel ? 'rgba(232,85,106,.1)' : 'rgba(255,255,255,.06)';
+    var bc = isDel ? 'rgba(232,85,106,.3)' : '#203050';
+    var fc = isDel ? '#e8556a' : (isDot ? '#6a8aa8' : '#ccdae8');
+    var ff = (!isDel&&!isDot) ? "'Playfair Display',serif" : 'DM Sans,sans-serif';
+    return '<button onclick="npPress(\''+val+'\')" '
+      +'style="background:'+bg+';border:1px solid '+bc+';border-radius:12px;'
+      +'padding:.95rem .4rem;font-size:1.3rem;font-weight:700;color:'+fc+';'
+      +'cursor:pointer;font-family:'+ff+';width:100%">'+lbl+'</button>';
   }
 
-  if(key === 'back'){
-    NP.isFirst = false;
-    if(NP.raw.length <= 1) NP.raw = '0';
-    else NP.raw = NP.raw.slice(0, -1);
-  } else if(key === '.'){
-    if(!NP.raw.includes('.')) NP.raw += (NP.raw === '' ? '0.' : '.');
+  var ov = document.createElement('div');
+  ov.id  = 'numpad-overlay';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:10000;'
+    +'background:rgba(6,9,20,.88);backdrop-filter:blur(10px);'
+    +'display:flex;align-items:flex-end;justify-content:center;';
+  ov.onclick = function(e){ if(e.target===ov) closeNumpad(); };
+
+  ov.innerHTML =
+    '<div style="width:100%;max-width:380px;'
+    +'background:linear-gradient(160deg,#0e1b2b,#070c14);'
+    +'border:1px solid #203050;border-radius:20px 20px 0 0;'
+    +'padding:1.1rem .85rem 1.8rem">'
+
+    /* header */
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.7rem">'
+      +'<div>'
+        +'<div style="font-size:.6rem;color:#3a526a;text-transform:uppercase;letter-spacing:.1em">'+label+'</div>'
+        +'<div style="font-size:.68rem;color:#6a8aa8;margin-top:.1rem">'
+          +'Range: <span style="color:'+color+'">'+( npIsCur?inr(npMin):npMin )+'</span>'
+          +' &ndash; <span style="color:'+color+'">'+( npIsCur?inr(npMax):npMax )+'</span>'
+        +'</div>'
+      +'</div>'
+      +'<button onclick="closeNumpad()" style="background:rgba(255,255,255,.06);border:1px solid #203050;'
+        +'border-radius:8px;color:#6a8aa8;font-size:1rem;cursor:pointer;padding:.3rem .65rem">&#x2715;</button>'
+    +'</div>'
+
+    /* display */
+    +'<div style="background:#0c1420;border:2px solid '+color+';border-radius:12px;'
+      +'padding:.7rem 1rem;margin-bottom:.75rem;min-height:3.2rem;'
+      +'display:flex;align-items:center;justify-content:flex-end;gap:.5rem">'
+      +(npIsCur?'<span style="font-size:1rem;color:#3a526a">&#8377;</span>':'')
+      +'<div style="text-align:right">'
+        +'<div id="np-main" style="font-family:Playfair Display,serif;font-size:1.65rem;font-weight:700;color:'+color+';line-height:1"></div>'
+        +'<div id="np-hint" style="font-size:.68rem;color:#3a526a;margin-top:.15rem"></div>'
+      +'</div>'
+    +'</div>'
+
+    /* shortcuts */
+    +(sc.length ? '<div style="display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.65rem">'+scHTML+'</div>' : '')
+
+    /* 3x4 grid */
+    +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.38rem;margin-bottom:.4rem">'
+      +kb('7','7')+kb('8','8')+kb('9','9')
+      +kb('4','4')+kb('5','5')+kb('6','6')
+      +kb('1','1')+kb('2','2')+kb('3','3')
+      +kb('.','&middot;')+kb('0','0')+kb('back','&#x232B;')
+    +'</div>'
+
+    /* action row */
+    +'<div style="display:grid;grid-template-columns:1fr 1.6fr;gap:.4rem;margin-top:.35rem">'
+      +'<button onclick="npClear()" style="padding:.75rem;background:rgba(232,85,106,.09);'
+        +'border:1px solid rgba(232,85,106,.28);border-radius:12px;color:#e8556a;'
+        +'font-size:.82rem;font-weight:600;cursor:pointer">Clear</button>'
+      +'<button onclick="npDone()" style="padding:.75rem;'
+        +'background:linear-gradient(135deg,#8a6d30,#c8a45a,#e2c07e);border:none;'
+        +'border-radius:12px;color:#080c12;font-size:.95rem;font-weight:800;'
+        +'cursor:pointer;font-family:Playfair Display,serif">Done &#10003;</button>'
+    +'</div>'
+  +'</div>';
+
+  document.body.appendChild(ov);
+  npRefresh();
+}
+
+function npPress(k){
+  if(k==='back'){
+    npStr = npStr.length > 1 ? npStr.slice(0,-1) : '0';
+  } else if(k==='.'){
+    if(npStr.indexOf('.')<0) npStr += '.';
   } else {
-    // digit
-    if(NP.raw === '0') NP.raw = key;   // replace leading zero
-    else NP.raw += key;
-    // Cap: don't allow typing something > 10× the max
-    if(parseFloat(NP.raw) > NP.max * 10) NP.raw = String(NP.max);
+    if(npStr==='0') npStr = k;
+    else npStr += k;
   }
-  npRefreshDisplay();
+  npRefresh();
 }
 
-function npSet(val){
-  NP.raw     = String(val);
-  NP.isFirst = false;
-  npRefreshDisplay();
+function npSet(v){
+  npStr = String(v);
+  npRefresh();
 }
 
 function npClear(){
-  NP.raw     = '0';
-  NP.isFirst = false;
-  npRefreshDisplay();
+  npStr = '0';
+  npRefresh();
 }
 
-function npRefreshDisplay(){
-  const mainEl = document.getElementById('np-val-main');
-  const hintEl = document.getElementById('np-val-hint');
+function npRefresh(){
+  var mainEl = document.getElementById('np-main');
+  var hintEl = document.getElementById('np-hint');
   if(!mainEl) return;
-
-  const n = parseFloat(NP.raw) || 0;
-
-  if(NP.isCur){
-    // Show formatted number with commas while typing
-    // If trailing dot, preserve it so user can type decimals
-    const trailingDot = NP.raw.endsWith('.');
-    mainEl.textContent = n.toLocaleString('en-IN') + (trailingDot ? '.' : '');
-    // Hint: show in L/Cr
-    if(n >= 100000) hintEl.textContent = '= ' + inr(n);
-    else hintEl.textContent = '';
-  } else if(NP.isPct){
-    mainEl.textContent = NP.raw + (NP.raw.endsWith('.') ? '' : '%');
+  var n = parseFloat(npStr) || 0;
+  if(npIsCur){
+    var trail = npStr.endsWith('.') ? '.' : '';
+    mainEl.textContent = n.toLocaleString('en-IN') + trail;
+    hintEl.textContent = n >= 100000 ? ('= ' + inr(n)) : '';
+  } else if(npIsPct){
+    mainEl.textContent = npStr + (npStr.endsWith('.') ? '' : '%');
     hintEl.textContent = '';
   } else {
-    mainEl.textContent = NP.raw;
+    mainEl.textContent = npStr;
     hintEl.textContent = '';
   }
-
-  // Warn if out of range
-  if(n > NP.max){
-    mainEl.style.color = 'var(--rose)';
-    if(hintEl) hintEl.textContent = `Max: ${NP.isCur?inr(NP.max):NP.max}`;
-  } else if(n < NP.min && NP.raw !== '' && NP.raw !== '0'){
-    mainEl.style.color = 'var(--amber)';
-  } else {
-    mainEl.style.color = ''; // reset to CSS default (inherits from box)
-  }
+  mainEl.style.color = n > npMax ? '#e8556a' : '';
 }
 
-function npConfirm(){
-  if(!NP.key) return;
-  let n = parseFloat(NP.raw) || 0;
-  n = clamp(n, NP.min, NP.max);
-  S[NP.key] = n;
-  const rng = document.getElementById('si-range-'+NP.key);
+function npDone(){
+  if(!npKey) return;
+  var n = parseFloat(npStr) || 0;
+  n = Math.max(npMin, Math.min(npMax, n));
+  S[npKey] = n;
+  var rng = document.getElementById('si-range-'+npKey);
   if(rng) rng.value = n;
-  updateSliderTrack(NP.key);
+  updateSliderTrack(npKey);
   render();
   closeNumpad();
 }
 
 function closeNumpad(){
-  const ov = document.getElementById('numpad-overlay');
-  if(ov){
-    ov.style.transition = 'opacity .18s';
-    ov.style.opacity    = '0';
-    setTimeout(() => ov.remove(), 200);
-  }
-  NP.key = null;
+  var ov = document.getElementById('numpad-overlay');
+  if(ov) ov.remove();
+  npKey = null;
 }
+
 
 /* ════════════════════════════════
    CHART REGISTRY
