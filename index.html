@@ -1341,10 +1341,12 @@ function handleSlider(key,el){
   render();
 }
 
-/* Focus: strip formatting so user sees raw number */
+/* Focus: just select text — numpad opens via onclick separately */
 function siOnFocus(el, key){
+  // On mobile, clicking opens numpad via onclick handler.
+  // On desktop, focus allows keyboard editing directly.
   el.select();
-  el.value = String(S[key]);
+  el.value = String(S[key]);   // show raw number for keyboard editing
 }
 
 /* Blur: validate, apply, reformat */
@@ -1396,177 +1398,292 @@ function updateSliderTrack(key){
 }
 
 /* ════════════════════════════════
-   NUMERIC KEYPAD (mobile-friendly)
+   NUMERIC KEYPAD — clean rewrite
 ════════════════════════════════ */
-let numpadKey = null, numpadMin = 0, numpadMax = 99999999, numpadVal = '';
+const NP = {
+  key: null, min: 0, max: 99999999,
+  raw: '',          // the raw digit string the user is building
+  isCur: false, isPct: false, isFirst: true,
+  // isFirst = true means next digit press REPLACES the pre-filled value
+};
 
 function showNumpad(key, min, max){
-  // Don't double-open
-  if(document.getElementById('numpad-overlay')) return;
-  numpadKey = key;
-  numpadMin = min;
-  numpadMax = max;
-  numpadVal = String(S[key]);
+  // Close any existing pad first
+  const existing = document.getElementById('numpad-overlay');
+  if(existing) existing.remove();
 
-  const txtEl = document.getElementById('si-txt-'+key);
-  const isCur = txtEl ? txtEl.dataset.iscur==='true' : false;
-  const isPct = txtEl ? txtEl.dataset.ispct==='true' : false;
-  const label = txtEl ? txtEl.closest('.si-wrap')?.querySelector('.si-label')?.textContent : key;
+  const txtEl  = document.getElementById('si-txt-'+key);
+  NP.key    = key;
+  NP.min    = Number(min);
+  NP.max    = Number(max);
+  NP.isCur  = txtEl ? txtEl.dataset.iscur === 'true' : false;
+  NP.isPct  = txtEl ? txtEl.dataset.ispct === 'true' : false;
+  NP.raw    = String(S[key]);   // pre-fill with current value
+  NP.isFirst = true;            // first keypress wipes the pre-fill
+
+  const label = txtEl
+    ? (txtEl.closest('.si-wrap')?.querySelector('.si-label')?.textContent || key)
+    : key;
   const color = txtEl ? txtEl.style.color : 'var(--gold)';
+
+  // Build shortcut list
+  let shortcuts = [];
+  if(NP.isCur){
+    const candidates = [10000,25000,50000,100000,500000,1000000,2500000,5000000,10000000,20000000];
+    shortcuts = candidates.filter(s => s >= NP.min && s <= NP.max).slice(0,6);
+  } else if(!NP.isPct){
+    const mid = Math.round((NP.min + NP.max) / 2);
+    shortcuts = [NP.min, mid, NP.max];
+  } else {
+    // % field quick values
+    shortcuts = [1,5,6,7,8,10,12,15].filter(s => s >= NP.min && s <= NP.max);
+  }
+
+  const shortcutHTML = shortcuts.map(s => `
+    <button class="np-sc" onclick="npSet(${s})"
+      style="padding:.28rem .6rem;background:rgba(200,164,90,.09);border:1px solid rgba(200,164,90,.22);
+             border-radius:20px;font-size:.66rem;color:var(--gold);cursor:pointer;white-space:nowrap;
+             font-family:'DM Sans'">
+      ${NP.isCur ? inr(s) : s+(NP.isPct?'%':'')}
+    </button>`).join('');
+
+  // Digit keys layout
+  const digitKeys = [7,8,9,4,5,6,1,2,3];
+  const digitBtns = digitKeys.map(n => `
+    <button class="np-key np-digit"
+      ontouchstart="npTouchPress(event,'${n}')"
+      ontouchend="npTouchEnd(event)"
+      onmousedown="npPress('${n}')">
+      ${n}
+    </button>`).join('');
 
   const overlay = document.createElement('div');
   overlay.id = 'numpad-overlay';
+  overlay.innerHTML = `
+  <style>
+    #np-sheet{
+      width:100%;max-width:420px;
+      background:linear-gradient(160deg,#0e1b2b,#080e18);
+      border:1px solid #203050;border-radius:22px 22px 0 0;
+      padding:1.1rem .9rem 1.6rem;
+      user-select:none;-webkit-user-select:none;
+    }
+    .np-key{
+      background:rgba(255,255,255,.055);border:1px solid #1e2f42;
+      border-radius:13px;font-size:1.25rem;font-weight:700;
+      color:#ccdae8;cursor:pointer;padding:.9rem .5rem;
+      font-family:'Playfair Display',serif;
+      transition:background .1s,transform .1s;
+      -webkit-tap-highlight-color:transparent;
+      touch-action:manipulation;
+    }
+    .np-key:active,.np-key.pressed{
+      background:rgba(200,164,90,.22)!important;
+      transform:scale(.91);
+    }
+    .np-del{background:rgba(232,85,106,.09);border-color:rgba(232,85,106,.28);color:#e8556a}
+    .np-del:active,.np-del.pressed{background:rgba(232,85,106,.25)!important}
+    .np-dot{color:#6a8aa8}
+    .np-sc:active{background:rgba(200,164,90,.22)!important}
+    #np-val-box{
+      background:#0c1420;border:2px solid ${color};border-radius:13px;
+      padding:.65rem 1rem;margin-bottom:.85rem;
+      display:flex;align-items:center;justify-content:flex-end;gap:.5rem;
+      min-height:3.2rem;overflow:hidden;
+    }
+    #np-val-main{
+      font-family:'Playfair Display',serif;font-size:1.7rem;font-weight:700;
+      color:${color};line-height:1;word-break:break-all;text-align:right;
+    }
+    #np-val-hint{font-size:.68rem;color:#3a526a;margin-top:.25rem;text-align:right}
+    .np-done{
+      background:linear-gradient(135deg,#8a6d30,#c8a45a,#e2c07e);
+      border:none;border-radius:13px;color:#080c12;
+      font-size:.95rem;font-weight:800;cursor:pointer;
+      font-family:'Playfair Display',serif;padding:.85rem;
+      touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+    }
+    .np-done:active{filter:brightness(.88);transform:scale(.96)}
+    .np-clear{
+      background:rgba(232,85,106,.09);border:1px solid rgba(232,85,106,.28);
+      border-radius:13px;color:#e8556a;font-size:.82rem;font-weight:600;
+      cursor:pointer;padding:.85rem;
+      touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+    }
+    .np-clear:active{background:rgba(232,85,106,.22)!important}
+  </style>
+  <div id="np-sheet">
+    <!-- Header -->
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem">
+      <div>
+        <div style="font-size:.6rem;color:#3a526a;text-transform:uppercase;letter-spacing:.12em;margin-bottom:.15rem">${label}</div>
+        <div style="font-size:.68rem;color:#6a8aa8">
+          Range: <span style="color:${color}">${NP.isCur?inr(NP.min):NP.min}</span>
+          &nbsp;–&nbsp;
+          <span style="color:${color}">${NP.isCur?inr(NP.max):NP.max}</span>
+        </div>
+      </div>
+      <button onclick="closeNumpad()"
+        style="background:rgba(255,255,255,.06);border:1px solid #1e2f42;border-radius:8px;
+               color:#6a8aa8;font-size:1rem;cursor:pointer;padding:.3rem .6rem;line-height:1">✕</button>
+    </div>
+
+    <!-- Display -->
+    <div id="np-val-box">
+      ${NP.isCur ? `<span style="font-size:1rem;color:#3a526a;flex-shrink:0">₹</span>` : ''}
+      <div>
+        <div id="np-val-main"></div>
+        <div id="np-val-hint"></div>
+      </div>
+    </div>
+
+    <!-- Shortcuts -->
+    ${shortcuts.length ? `<div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:.7rem">${shortcutHTML}</div>` : ''}
+
+    <!-- Grid: 9 digit keys + dot + 0 + del -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.42rem;margin-bottom:.5rem">
+      ${digitBtns}
+      <button class="np-key np-dot"
+        ontouchstart="npTouchPress(event,'.')"
+        ontouchend="npTouchEnd(event)"
+        onmousedown="npPress('.')">·</button>
+      <button class="np-key np-digit"
+        ontouchstart="npTouchPress(event,'0')"
+        ontouchend="npTouchEnd(event)"
+        onmousedown="npPress('0')">0</button>
+      <button class="np-key np-del"
+        ontouchstart="npTouchPress(event,'back')"
+        ontouchend="npTouchEnd(event)"
+        onmousedown="npPress('back')">⌫</button>
+    </div>
+
+    <!-- Action row -->
+    <div style="display:grid;grid-template-columns:1fr 1.6fr;gap:.45rem;margin-top:.3rem">
+      <button class="np-clear" onclick="npClear()">Clear</button>
+      <button class="np-done"  onclick="npConfirm()">Done ✓</button>
+    </div>
+  </div>`;
+
   overlay.style.cssText = `
     position:fixed;inset:0;z-index:10000;
-    background:rgba(7,12,20,.85);backdrop-filter:blur(8px);
+    background:rgba(6,9,20,.82);backdrop-filter:blur(10px);
     display:flex;align-items:flex-end;justify-content:center;
-    animation:fadeIn .2s ease;
+    animation:fadeIn .18s ease;
   `;
-  overlay.onclick = e => { if(e.target===overlay) closeNumpad(); };
-
-  overlay.innerHTML = `
-    <div style="
-      width:100%;max-width:400px;
-      background:linear-gradient(145deg,#0d1a2a,#091018);
-      border:1px solid var(--border2);border-radius:20px 20px 0 0;
-      padding:1.2rem 1rem 1.5rem;
-      animation:fadeUp .25s ease;
-    ">
-      <!-- Header -->
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem">
-        <div>
-          <div style="font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em">${label}</div>
-          <div style="font-size:.7rem;color:var(--text-sub);margin-top:.1rem">Range: ${isCur?inr(min):min} – ${isCur?inr(max):max}</div>
-        </div>
-        <button onclick="closeNumpad()" style="background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;padding:.2rem">✕</button>
-      </div>
-
-      <!-- Display -->
-      <div id="np-display" style="
-        background:var(--surface);border:1.5px solid ${color};border-radius:12px;
-        padding:.7rem 1rem;margin-bottom:.9rem;
-        font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;
-        color:${color};text-align:right;min-height:3rem;
-        display:flex;align-items:center;justify-content:flex-end;gap:.4rem;
-        transition:border-color .2s;
-      ">
-        ${isCur?`<span style="font-size:1rem;color:var(--muted)">₹</span>`:''}
-        <span id="np-val">${isCur?Number(numpadVal).toLocaleString('en-IN'):numpadVal+(isPct?'%':'')}</span>
-      </div>
-
-      <!-- Keypad grid -->
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.45rem">
-        ${[7,8,9,4,5,6,1,2,3].map(n=>`
-          <button onclick="npPress('${n}')" style="
-            background:rgba(255,255,255,.05);border:1px solid var(--border2);
-            border-radius:12px;padding:.85rem;
-            font-size:1.2rem;font-weight:600;color:var(--text);
-            cursor:pointer;transition:.15s;
-            font-family:'Playfair Display',serif;
-          " onmousedown="this.style.background='rgba(200,164,90,.15)'" onmouseup="this.style.background='rgba(255,255,255,.05)'" ontouchstart="this.style.background='rgba(200,164,90,.15)'" ontouchend="this.style.background='rgba(255,255,255,.05)'">${n}</button>
-        `).join('')}
-        <button onclick="npPress('.')" style="background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:12px;padding:.85rem;font-size:1.2rem;font-weight:600;color:var(--muted);cursor:pointer;transition:.15s" onmousedown="this.style.background='rgba(200,164,90,.1)'" onmouseup="this.style.background='rgba(255,255,255,.05)'" ontouchstart="this.style.background='rgba(200,164,90,.1)'" ontouchend="this.style.background='rgba(255,255,255,.05)'">.</button>
-        <button onclick="npPress('0')" style="background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:12px;padding:.85rem;font-size:1.2rem;font-weight:600;color:var(--text);cursor:pointer;transition:.15s;font-family:'Playfair Display',serif;" onmousedown="this.style.background='rgba(200,164,90,.15)'" onmouseup="this.style.background='rgba(255,255,255,.05)'" ontouchstart="this.style.background='rgba(200,164,90,.15)'" ontouchend="this.style.background='rgba(255,255,255,.05)'">0</button>
-        <button onclick="npPress('back')" style="background:rgba(232,85,106,.08);border:1px solid rgba(232,85,106,.25);border-radius:12px;padding:.85rem;font-size:1.2rem;color:var(--rose);cursor:pointer;transition:.15s" onmousedown="this.style.background='rgba(232,85,106,.2)'" onmouseup="this.style.background='rgba(232,85,106,.08)'" ontouchstart="this.style.background='rgba(232,85,106,.2)'" ontouchend="this.style.background='rgba(232,85,106,.08)'">⌫</button>
-      </div>
-
-      <!-- Quick shortcuts -->
-      <div style="display:flex;gap:.4rem;margin-top:.6rem;flex-wrap:wrap" id="np-shortcuts"></div>
-
-      <!-- Action buttons -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:.7rem">
-        <button onclick="npClear()" style="padding:.7rem;background:rgba(232,85,106,.08);border:1px solid rgba(232,85,106,.25);border-radius:12px;color:var(--rose);font-size:.82rem;font-weight:600;cursor:pointer">Clear</button>
-        <button onclick="npConfirm()" style="padding:.7rem;background:linear-gradient(135deg,var(--gold-dk),var(--gold));border:none;border-radius:12px;color:#080c12;font-size:.88rem;font-weight:800;cursor:pointer;font-family:'Playfair Display',serif">Done ✓</button>
-      </div>
-    </div>`;
+  overlay.addEventListener('click', e => { if(e.target===overlay) closeNumpad(); });
+  // Prevent overlay scroll-through on mobile
+  overlay.addEventListener('touchmove', e => e.preventDefault(), {passive:false});
 
   document.body.appendChild(overlay);
-
-  // Build quick shortcuts based on field type
-  buildNpShortcuts(isCur, isPct, min, max, color);
+  npRefreshDisplay();
 }
 
-function buildNpShortcuts(isCur, isPct, min, max, color){
-  const el = document.getElementById('np-shortcuts'); if(!el) return;
-  let shortcuts = [];
-  if(isCur){
-    // Currency shortcuts
-    if(max>=10000000) shortcuts=[500000,1000000,2500000,5000000,10000000];
-    else if(max>=1000000) shortcuts=[100000,500000,1000000];
-    else shortcuts=[10000,25000,50000,100000];
-    shortcuts=shortcuts.filter(s=>s>=min&&s<=max);
-    el.innerHTML=shortcuts.map(s=>`
-      <button onclick="npSet(${s})" style="
-        padding:.28rem .55rem;background:rgba(200,164,90,.08);
-        border:1px solid rgba(200,164,90,.2);border-radius:20px;
-        font-size:.65rem;color:var(--gold);cursor:pointer;white-space:nowrap;transition:.15s
-      " onmousedown="this.style.background='rgba(200,164,90,.2)'" onmouseup="this.style.background='rgba(200,164,90,.08)'">${inr(s)}</button>
-    `).join('');
-  } else if(!isPct){
-    // Age/year shortcuts
-    const mid = Math.round((min+max)/2);
-    shortcuts=[min, mid, max];
-    el.innerHTML=shortcuts.map(s=>`
-      <button onclick="npSet(${s})" style="
-        padding:.28rem .55rem;background:rgba(200,164,90,.08);
-        border:1px solid rgba(200,164,90,.2);border-radius:20px;
-        font-size:.65rem;color:var(--gold);cursor:pointer;transition:.15s
-      " onmousedown="this.style.background='rgba(200,164,90,.2)'" onmouseup="this.style.background='rgba(200,164,90,.08)'">${s}</button>
-    `).join('');
-  }
+/* Touch handling — prevent ghost click double-fires */
+let _npTouchActive = false;
+function npTouchPress(e, key){
+  e.preventDefault();
+  _npTouchActive = true;
+  e.currentTarget.classList.add('pressed');
+  npPress(key);
+}
+function npTouchEnd(e){
+  e.preventDefault();
+  e.currentTarget.classList.remove('pressed');
+  setTimeout(()=>{ _npTouchActive = false; }, 350);
 }
 
+/* Core press logic */
 function npPress(key){
-  if(key==='back'){
-    numpadVal = numpadVal.slice(0,-1)||'0';
-  } else if(key==='.'){
-    if(!numpadVal.includes('.')) numpadVal += '.';
-  } else {
-    if(numpadVal==='0') numpadVal=key;
-    else numpadVal += key;
-    // Prevent too large a number
-    if(Number(numpadVal)>numpadMax*10) numpadVal=String(numpadMax);
+  if(_npTouchActive && !key) return; // guard ghost clicks
+
+  if(NP.isFirst && key !== 'back'){
+    // First real keystroke → wipe pre-filled value
+    NP.raw   = '';
+    NP.isFirst = false;
   }
-  npUpdateDisplay();
+
+  if(key === 'back'){
+    NP.isFirst = false;
+    if(NP.raw.length <= 1) NP.raw = '0';
+    else NP.raw = NP.raw.slice(0, -1);
+  } else if(key === '.'){
+    if(!NP.raw.includes('.')) NP.raw += (NP.raw === '' ? '0.' : '.');
+  } else {
+    // digit
+    if(NP.raw === '0') NP.raw = key;   // replace leading zero
+    else NP.raw += key;
+    // Cap: don't allow typing something > 10× the max
+    if(parseFloat(NP.raw) > NP.max * 10) NP.raw = String(NP.max);
+  }
+  npRefreshDisplay();
 }
 
 function npSet(val){
-  numpadVal = String(val);
-  npUpdateDisplay();
+  NP.raw     = String(val);
+  NP.isFirst = false;
+  npRefreshDisplay();
 }
 
 function npClear(){
-  numpadVal='0';
-  npUpdateDisplay();
+  NP.raw     = '0';
+  NP.isFirst = false;
+  npRefreshDisplay();
 }
 
-function npUpdateDisplay(){
-  const valEl=document.getElementById('np-val'); if(!valEl) return;
-  const txtEl=document.getElementById('si-txt-'+numpadKey);
-  const isCur=txtEl?txtEl.dataset.iscur==='true':false;
-  const isPct=txtEl?txtEl.dataset.ispct==='true':false;
-  const n=parseFloat(numpadVal)||0;
-  if(isCur) valEl.textContent=n.toLocaleString('en-IN');
-  else if(isPct) valEl.textContent=numpadVal+(numpadVal.endsWith('.')?'':'%');
-  else valEl.textContent=numpadVal;
+function npRefreshDisplay(){
+  const mainEl = document.getElementById('np-val-main');
+  const hintEl = document.getElementById('np-val-hint');
+  if(!mainEl) return;
+
+  const n = parseFloat(NP.raw) || 0;
+
+  if(NP.isCur){
+    // Show formatted number with commas while typing
+    // If trailing dot, preserve it so user can type decimals
+    const trailingDot = NP.raw.endsWith('.');
+    mainEl.textContent = n.toLocaleString('en-IN') + (trailingDot ? '.' : '');
+    // Hint: show in L/Cr
+    if(n >= 100000) hintEl.textContent = '= ' + inr(n);
+    else hintEl.textContent = '';
+  } else if(NP.isPct){
+    mainEl.textContent = NP.raw + (NP.raw.endsWith('.') ? '' : '%');
+    hintEl.textContent = '';
+  } else {
+    mainEl.textContent = NP.raw;
+    hintEl.textContent = '';
+  }
+
+  // Warn if out of range
+  if(n > NP.max){
+    mainEl.style.color = 'var(--rose)';
+    if(hintEl) hintEl.textContent = `Max: ${NP.isCur?inr(NP.max):NP.max}`;
+  } else if(n < NP.min && NP.raw !== '' && NP.raw !== '0'){
+    mainEl.style.color = 'var(--amber)';
+  } else {
+    mainEl.style.color = ''; // reset to CSS default (inherits from box)
+  }
 }
 
 function npConfirm(){
-  if(!numpadKey) return;
-  let n=parseFloat(numpadVal)||0;
-  n=clamp(n,numpadMin,numpadMax);
-  S[numpadKey]=n;
-  const rng=document.getElementById('si-range-'+numpadKey);
-  if(rng) rng.value=n;
-  updateSliderTrack(numpadKey);
+  if(!NP.key) return;
+  let n = parseFloat(NP.raw) || 0;
+  n = clamp(n, NP.min, NP.max);
+  S[NP.key] = n;
+  const rng = document.getElementById('si-range-'+NP.key);
+  if(rng) rng.value = n;
+  updateSliderTrack(NP.key);
   render();
   closeNumpad();
 }
 
 function closeNumpad(){
-  const ov=document.getElementById('numpad-overlay');
-  if(ov){ ov.style.opacity='0'; ov.style.transition='opacity .2s'; setTimeout(()=>ov.remove(),220); }
-  numpadKey=null;
+  const ov = document.getElementById('numpad-overlay');
+  if(ov){
+    ov.style.transition = 'opacity .18s';
+    ov.style.opacity    = '0';
+    setTimeout(() => ov.remove(), 200);
+  }
+  NP.key = null;
 }
 
 /* ════════════════════════════════
