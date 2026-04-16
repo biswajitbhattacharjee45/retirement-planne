@@ -325,6 +325,10 @@ button{font-family:'DM Sans',sans-serif;cursor:pointer}
 .slab-row{display:flex;justify-content:space-between;padding:.38rem 0;border-bottom:1px dashed var(--border);font-size:.74rem}
 .slab-highlight{background:rgba(200,164,90,.06);border-radius:6px;padding:.38rem .6rem;margin:-.38rem -.6rem}
 
+/* ══ NUMERIC KEYPAD ══ */
+#numpad-overlay{touch-action:none}
+#numpad-overlay button:active{transform:scale(.94);transition:transform .1s}
+
 /* ══════════════════════════════
    ONBOARDING SCREEN
 ══════════════════════════════ */
@@ -1318,10 +1322,13 @@ function makeSlider(containerId, key, label, min, max, step, opts={}) {
           <input type="text" id="si-txt-${key}"
             class="si-input${isCur?'':' no-prefix'}"
             style="color:${colorVar}"
+            data-iscur="${isCur}" data-ispct="${isPct}"
             value="${isCur?S[key].toLocaleString('en-IN'):isPct?S[key]+'%':S[key]}"
-            onfocus="this.select();this.dataset.prev=this.value;this.value='${S[key]}'"
-            onblur="handleText('${key}',this,${min},${max},${isCur},${isPct})"
-            onkeydown="if(event.key==='Enter')this.blur()">
+            inputmode="decimal"
+            onfocus="siOnFocus(this,'${key}')"
+            onblur="siOnBlur(this,'${key}',${min},${max})"
+            onkeydown="if(event.key==='Enter')this.blur()"
+            onclick="showNumpad('${key}',${min},${max})">
         </div>
       </div>
     </div>`;
@@ -1334,41 +1341,232 @@ function handleSlider(key,el){
   render();
 }
 
-function handleText(key,el,min,max,isCur,isPct){
+/* Focus: strip formatting so user sees raw number */
+function siOnFocus(el, key){
+  el.select();
+  el.value = String(S[key]);
+}
+
+/* Blur: validate, apply, reformat */
+function siOnBlur(el, key, min, max){
   let raw = el.value.replace(/[^0-9.]/g,'');
   let n = parseFloat(raw);
   if(isNaN(n)) n = S[key];
-  n = clamp(n,min,max);
+  n = clamp(n, min, max);
   S[key] = n;
-  const rng = document.getElementById(`si-range-${key}`);
-  if(rng){ rng.value = n; updateSliderTrack(key); }
-  el.value = isCur ? n.toLocaleString('en-IN') : isPct ? n+'%' : String(n);
+  const rng = document.getElementById('si-range-'+key);
+  if(rng){ rng.value = n; }
+  updateSliderTrack(key);
+  // Close numpad if open
+  if(document.getElementById('numpad-overlay')) closeNumpad();
   render();
 }
 
+/* Legacy alias kept for any old calls */
+function handleText(key,el,min,max,isCur,isPct){
+  siOnBlur(el,key,min,max);
+}
+
 function updateSliderTrack(key){
-  const rng = document.getElementById(`si-range-${key}`);
-  const inrEl = document.getElementById(`si-inr-${key}`);
-  const txtEl = document.getElementById(`si-txt-${key}`);
-  const pfxEl = document.getElementById(`si-pfx-${key}`);
+  const rng   = document.getElementById('si-range-'+key);
+  const inrEl = document.getElementById('si-inr-'+key);
+  const txtEl = document.getElementById('si-txt-'+key);
+  const pfxEl = document.getElementById('si-pfx-'+key);
   if(!rng) return;
   const min=Number(rng.min), max=Number(rng.max), v=Number(rng.value);
-  const pf = clamp((v-min)/(max-min)*100,0,100);
-  const col = rng.style.color || 'var(--gold)';
-  // Extract color from the input style
+  const frac = clamp((v-min)/(max-min)*100,0,100);
   const c = txtEl ? txtEl.style.color : 'var(--gold)';
-  rng.style.background = `linear-gradient(90deg,${c} ${pf}%,var(--border2) ${pf}%)`;
+  rng.style.background = `linear-gradient(90deg,${c} ${frac}%,var(--border2) ${frac}%)`;
   if(inrEl) inrEl.textContent = inr(v);
-  if(txtEl && document.activeElement!==txtEl){
-    // detect if it's currency or pct from value
-    if(pfxEl) txtEl.value = v.toLocaleString('en-IN');
-    else if(txtEl.classList.contains('no-prefix')){
-      // check if we need %
-      const val = S[key];
-      if(typeof val==='number' && rng.max<=100) txtEl.value = v+'%';
-      else txtEl.value = String(v);
+  // Only update display when not focused
+  if(txtEl && document.activeElement !== txtEl){
+    const isCur = txtEl.dataset.iscur === 'true';
+    const isPct = txtEl.dataset.ispct === 'true';
+    if(isCur){
+      // Show ₹ prefix in separate span, value in box without symbol
+      if(pfxEl) pfxEl.style.display = 'block';
+      txtEl.value = v.toLocaleString('en-IN');
+    } else if(isPct){
+      txtEl.value = v + '%';
+    } else {
+      // Absolute value (age, years etc) — no symbol, no %
+      txtEl.value = String(v);
     }
   }
+}
+
+/* ════════════════════════════════
+   NUMERIC KEYPAD (mobile-friendly)
+════════════════════════════════ */
+let numpadKey = null, numpadMin = 0, numpadMax = 99999999, numpadVal = '';
+
+function showNumpad(key, min, max){
+  // Don't double-open
+  if(document.getElementById('numpad-overlay')) return;
+  numpadKey = key;
+  numpadMin = min;
+  numpadMax = max;
+  numpadVal = String(S[key]);
+
+  const txtEl = document.getElementById('si-txt-'+key);
+  const isCur = txtEl ? txtEl.dataset.iscur==='true' : false;
+  const isPct = txtEl ? txtEl.dataset.ispct==='true' : false;
+  const label = txtEl ? txtEl.closest('.si-wrap')?.querySelector('.si-label')?.textContent : key;
+  const color = txtEl ? txtEl.style.color : 'var(--gold)';
+
+  const overlay = document.createElement('div');
+  overlay.id = 'numpad-overlay';
+  overlay.style.cssText = `
+    position:fixed;inset:0;z-index:10000;
+    background:rgba(7,12,20,.85);backdrop-filter:blur(8px);
+    display:flex;align-items:flex-end;justify-content:center;
+    animation:fadeIn .2s ease;
+  `;
+  overlay.onclick = e => { if(e.target===overlay) closeNumpad(); };
+
+  overlay.innerHTML = `
+    <div style="
+      width:100%;max-width:400px;
+      background:linear-gradient(145deg,#0d1a2a,#091018);
+      border:1px solid var(--border2);border-radius:20px 20px 0 0;
+      padding:1.2rem 1rem 1.5rem;
+      animation:fadeUp .25s ease;
+    ">
+      <!-- Header -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem">
+        <div>
+          <div style="font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em">${label}</div>
+          <div style="font-size:.7rem;color:var(--text-sub);margin-top:.1rem">Range: ${isCur?inr(min):min} – ${isCur?inr(max):max}</div>
+        </div>
+        <button onclick="closeNumpad()" style="background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;padding:.2rem">✕</button>
+      </div>
+
+      <!-- Display -->
+      <div id="np-display" style="
+        background:var(--surface);border:1.5px solid ${color};border-radius:12px;
+        padding:.7rem 1rem;margin-bottom:.9rem;
+        font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;
+        color:${color};text-align:right;min-height:3rem;
+        display:flex;align-items:center;justify-content:flex-end;gap:.4rem;
+        transition:border-color .2s;
+      ">
+        ${isCur?`<span style="font-size:1rem;color:var(--muted)">₹</span>`:''}
+        <span id="np-val">${isCur?Number(numpadVal).toLocaleString('en-IN'):numpadVal+(isPct?'%':'')}</span>
+      </div>
+
+      <!-- Keypad grid -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.45rem">
+        ${[7,8,9,4,5,6,1,2,3].map(n=>`
+          <button onclick="npPress('${n}')" style="
+            background:rgba(255,255,255,.05);border:1px solid var(--border2);
+            border-radius:12px;padding:.85rem;
+            font-size:1.2rem;font-weight:600;color:var(--text);
+            cursor:pointer;transition:.15s;
+            font-family:'Playfair Display',serif;
+          " onmousedown="this.style.background='rgba(200,164,90,.15)'" onmouseup="this.style.background='rgba(255,255,255,.05)'" ontouchstart="this.style.background='rgba(200,164,90,.15)'" ontouchend="this.style.background='rgba(255,255,255,.05)'">${n}</button>
+        `).join('')}
+        <button onclick="npPress('.')" style="background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:12px;padding:.85rem;font-size:1.2rem;font-weight:600;color:var(--muted);cursor:pointer;transition:.15s" onmousedown="this.style.background='rgba(200,164,90,.1)'" onmouseup="this.style.background='rgba(255,255,255,.05)'" ontouchstart="this.style.background='rgba(200,164,90,.1)'" ontouchend="this.style.background='rgba(255,255,255,.05)'">.</button>
+        <button onclick="npPress('0')" style="background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:12px;padding:.85rem;font-size:1.2rem;font-weight:600;color:var(--text);cursor:pointer;transition:.15s;font-family:'Playfair Display',serif;" onmousedown="this.style.background='rgba(200,164,90,.15)'" onmouseup="this.style.background='rgba(255,255,255,.05)'" ontouchstart="this.style.background='rgba(200,164,90,.15)'" ontouchend="this.style.background='rgba(255,255,255,.05)'">0</button>
+        <button onclick="npPress('back')" style="background:rgba(232,85,106,.08);border:1px solid rgba(232,85,106,.25);border-radius:12px;padding:.85rem;font-size:1.2rem;color:var(--rose);cursor:pointer;transition:.15s" onmousedown="this.style.background='rgba(232,85,106,.2)'" onmouseup="this.style.background='rgba(232,85,106,.08)'" ontouchstart="this.style.background='rgba(232,85,106,.2)'" ontouchend="this.style.background='rgba(232,85,106,.08)'">⌫</button>
+      </div>
+
+      <!-- Quick shortcuts -->
+      <div style="display:flex;gap:.4rem;margin-top:.6rem;flex-wrap:wrap" id="np-shortcuts"></div>
+
+      <!-- Action buttons -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:.7rem">
+        <button onclick="npClear()" style="padding:.7rem;background:rgba(232,85,106,.08);border:1px solid rgba(232,85,106,.25);border-radius:12px;color:var(--rose);font-size:.82rem;font-weight:600;cursor:pointer">Clear</button>
+        <button onclick="npConfirm()" style="padding:.7rem;background:linear-gradient(135deg,var(--gold-dk),var(--gold));border:none;border-radius:12px;color:#080c12;font-size:.88rem;font-weight:800;cursor:pointer;font-family:'Playfair Display',serif">Done ✓</button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(overlay);
+
+  // Build quick shortcuts based on field type
+  buildNpShortcuts(isCur, isPct, min, max, color);
+}
+
+function buildNpShortcuts(isCur, isPct, min, max, color){
+  const el = document.getElementById('np-shortcuts'); if(!el) return;
+  let shortcuts = [];
+  if(isCur){
+    // Currency shortcuts
+    if(max>=10000000) shortcuts=[500000,1000000,2500000,5000000,10000000];
+    else if(max>=1000000) shortcuts=[100000,500000,1000000];
+    else shortcuts=[10000,25000,50000,100000];
+    shortcuts=shortcuts.filter(s=>s>=min&&s<=max);
+    el.innerHTML=shortcuts.map(s=>`
+      <button onclick="npSet(${s})" style="
+        padding:.28rem .55rem;background:rgba(200,164,90,.08);
+        border:1px solid rgba(200,164,90,.2);border-radius:20px;
+        font-size:.65rem;color:var(--gold);cursor:pointer;white-space:nowrap;transition:.15s
+      " onmousedown="this.style.background='rgba(200,164,90,.2)'" onmouseup="this.style.background='rgba(200,164,90,.08)'">${inr(s)}</button>
+    `).join('');
+  } else if(!isPct){
+    // Age/year shortcuts
+    const mid = Math.round((min+max)/2);
+    shortcuts=[min, mid, max];
+    el.innerHTML=shortcuts.map(s=>`
+      <button onclick="npSet(${s})" style="
+        padding:.28rem .55rem;background:rgba(200,164,90,.08);
+        border:1px solid rgba(200,164,90,.2);border-radius:20px;
+        font-size:.65rem;color:var(--gold);cursor:pointer;transition:.15s
+      " onmousedown="this.style.background='rgba(200,164,90,.2)'" onmouseup="this.style.background='rgba(200,164,90,.08)'">${s}</button>
+    `).join('');
+  }
+}
+
+function npPress(key){
+  if(key==='back'){
+    numpadVal = numpadVal.slice(0,-1)||'0';
+  } else if(key==='.'){
+    if(!numpadVal.includes('.')) numpadVal += '.';
+  } else {
+    if(numpadVal==='0') numpadVal=key;
+    else numpadVal += key;
+    // Prevent too large a number
+    if(Number(numpadVal)>numpadMax*10) numpadVal=String(numpadMax);
+  }
+  npUpdateDisplay();
+}
+
+function npSet(val){
+  numpadVal = String(val);
+  npUpdateDisplay();
+}
+
+function npClear(){
+  numpadVal='0';
+  npUpdateDisplay();
+}
+
+function npUpdateDisplay(){
+  const valEl=document.getElementById('np-val'); if(!valEl) return;
+  const txtEl=document.getElementById('si-txt-'+numpadKey);
+  const isCur=txtEl?txtEl.dataset.iscur==='true':false;
+  const isPct=txtEl?txtEl.dataset.ispct==='true':false;
+  const n=parseFloat(numpadVal)||0;
+  if(isCur) valEl.textContent=n.toLocaleString('en-IN');
+  else if(isPct) valEl.textContent=numpadVal+(numpadVal.endsWith('.')?'':'%');
+  else valEl.textContent=numpadVal;
+}
+
+function npConfirm(){
+  if(!numpadKey) return;
+  let n=parseFloat(numpadVal)||0;
+  n=clamp(n,numpadMin,numpadMax);
+  S[numpadKey]=n;
+  const rng=document.getElementById('si-range-'+numpadKey);
+  if(rng) rng.value=n;
+  updateSliderTrack(numpadKey);
+  render();
+  closeNumpad();
+}
+
+function closeNumpad(){
+  const ov=document.getElementById('numpad-overlay');
+  if(ov){ ov.style.opacity='0'; ov.style.transition='opacity .2s'; setTimeout(()=>ov.remove(),220); }
+  numpadKey=null;
 }
 
 /* ════════════════════════════════
