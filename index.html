@@ -953,7 +953,7 @@ button{font-family:'DM Sans',sans-serif;cursor:pointer}
           </button>
           <button class="regime-btn" id="sal-mode-da" onclick="setSalaryMode('da')">
             <div style="font-size:.72rem;font-weight:700;margin-bottom:.15rem">🏦 DA Revision</div>
-            <div style="font-size:.6rem;color:var(--muted)">SBI 6-monthly DA</div>
+            <div style="font-size:.6rem;color:var(--muted)">6-monthly DA revision</div>
           </button>
           <button class="regime-btn" id="sal-mode-manual" onclick="setSalaryMode('manual')">
             <div style="font-size:.72rem;font-weight:700;margin-bottom:.15rem">✏️ Manual</div>
@@ -969,7 +969,7 @@ button{font-family:'DM Sans',sans-serif;cursor:pointer}
         <!-- DA mode -->
         <div id="sal-da-section" style="display:none">
           <div style="background:rgba(46,196,160,.06);border:1px solid rgba(46,196,160,.2);border-radius:10px;padding:.8rem 1rem;font-size:.73rem;color:var(--text-sub);line-height:1.7">
-            🏦 <strong style="color:var(--teal)">SBI DA Revision Pattern</strong><br>
+            🏦 <strong style="color:var(--teal)">DA Revision Pattern</strong><br>
             DA revised twice yearly (Jan & Jul) based on AICPI. Default: 3% every 6 months (~6%/yr).
             <div style="display:flex;gap:.8rem;margin-top:.65rem;flex-wrap:wrap">
               <div>
@@ -996,17 +996,250 @@ button{font-family:'DM Sans',sans-serif;cursor:pointer}
 
     <!-- Corpus tab -->
     <div class="tab-content" id="cfg-tab-1">
+
+      <!-- Monthly Contributions card -->
+      <div class="card card-pad mb1" style="border-color:rgba(46,196,160,.2)">
+        <div class="section-header">
+          <span class="section-icon">📥</span>
+          <span class="section-title" style="color:var(--teal)">Monthly Contributions</span>
+          <button class="calc-btn" onclick="toggleCalcPanel('contrib-calc')">🔢 How Calculated</button>
+        </div>
+        <div id="contrib-calc" class="calc-panel">
+          <div class="calc-step"><div class="calc-step-num">1</div><div><strong style="color:var(--teal)">PF (EPF)</strong>: Employee 12% of Basic + Employer 12% of Basic. Interest: <span class="calc-formula">8.25% p.a., compounded half-yearly (Mar & Sep)</span></div></div>
+          <div class="calc-step"><div class="calc-step-num">2</div><div><strong style="color:var(--sky)">PPF</strong>: Fixed monthly deposit. Interest: <span class="calc-formula">7.1% p.a., credited yearly on 5th-to-last-day balance</span></div></div>
+          <div class="calc-step"><div class="calc-step-num">3</div><div><strong style="color:var(--lavender)">NPS</strong>: Employee + Employer contributions. Assumed return: <span class="calc-formula">10% p.a. compounded monthly</span></div></div>
+          <div class="calc-step"><div class="calc-step-num">4</div><div><strong style="color:var(--amber)">VPF / Others</strong>: Additional voluntary PF over 12% limit, earns same PF rate</div></div>
+          <div class="calc-result">All contributions compound to final corpus shown in the Monthly Timeline page</div>
+        </div>
+
+        <div style="font-size:.72rem;color:var(--text-sub);margin-bottom:.9rem;line-height:1.6">
+          Auto-calculated from your salary. Override any field manually. <strong style="color:var(--teal)">Basic %</strong> drives auto-contributions.
+        </div>
+
+        <!-- Basic % of Gross -->
+        <div id="si-basic-pct"></div>
+
+        <!-- PF Section -->
+        <div style="background:rgba(46,196,160,.05);border:1px solid rgba(46,196,160,.2);border-radius:12px;padding:.9rem 1rem;margin-bottom:.8rem">
+          <div style="font-size:.72rem;font-weight:700;color:var(--teal);margin-bottom:.65rem">🏦 Provident Fund (EPF/VPF)</div>
+          <div class="grid2" style="gap:.6rem;margin-bottom:.5rem">
+            <div>
+              <div class="date-label">Employee PF % of Basic</div>
+              <input type="number" id="pf-emp-pct" value="12" min="0" max="100" step="1" onchange="S.pfEmpPct=+this.value;updatePfAmounts();render()"
+                style="width:100%;padding:.5rem .7rem;background:var(--surface);border:1.5px solid var(--border2);border-radius:8px;color:var(--teal);font-size:.82rem;outline:none;font-family:'DM Sans'">
+            </div>
+            <div>
+              <div class="date-label">Employer PF % of Basic</div>
+              <input type="number" id="pf-emr-pct" value="12" min="0" max="12" step="1" onchange="S.pfEmrPct=+this.value;updatePfAmounts();render()"
+                style="width:100%;padding:.5rem .7rem;background:var(--surface);border:1.5px solid var(--border2);border-radius:8px;color:var(--teal);font-size:.82rem;outline:none;font-family:'DM Sans'">
+            </div>
+          </div>
+          <div class="grid2" style="gap:.6rem;margin-bottom:.5rem">
+            <div>
+              <div class="date-label">Monthly PF (Auto-calc)</div>
+              <input type="number" id="pf-monthly-auto" readonly
+                style="width:100%;padding:.5rem .7rem;background:rgba(46,196,160,.05);border:1.5px solid rgba(46,196,160,.2);border-radius:8px;color:var(--teal);font-size:.82rem;outline:none;font-family:'DM Sans';cursor:not-allowed">
+            </div>
+            <div>
+              <div class="date-label">Monthly PF (Override ₹)</div>
+              <input type="number" id="pf-monthly-override" min="0" max="200000" step="500" placeholder="Leave blank = auto"
+                onchange="S.pfMonthlyOverride=+this.value||0;render()"
+                style="width:100%;padding:.5rem .7rem;background:var(--surface);border:1.5px solid var(--border2);border-radius:8px;color:var(--gold);font-size:.82rem;outline:none;font-family:'DM Sans'">
+            </div>
+          </div>
+          <div class="grid2" style="gap:.6rem">
+            <div>
+              <div class="date-label">PF Interest Rate %</div>
+              <input type="number" id="pf-rate" value="8.25" min="0" max="15" step="0.05" onchange="S.pfRate=+this.value;render()"
+                style="width:100%;padding:.5rem .7rem;background:var(--surface);border:1.5px solid var(--border2);border-radius:8px;color:var(--teal);font-size:.82rem;outline:none;font-family:'DM Sans'">
+            </div>
+            <div>
+              <div class="date-label">VPF Monthly (extra)</div>
+              <input type="number" id="vpf-monthly" value="0" min="0" max="100000" step="500" onchange="S.vpfMonthly=+this.value;render()"
+                style="width:100%;padding:.5rem .7rem;background:var(--surface);border:1.5px solid var(--border2);border-radius:8px;color:var(--lavender);font-size:.82rem;outline:none;font-family:'DM Sans'">
+            </div>
+          </div>
+          <div style="margin-top:.55rem;font-size:.68rem;color:var(--muted)">⚡ PF compounded <strong style="color:var(--teal)">half-yearly</strong> (Mar & Sep). Current balance tracked in One-Time Corpus above.</div>
+          <div id="pf-proj-row" style="margin-top:.5rem"></div>
+        </div>
+
+        <!-- PPF Section -->
+        <div style="background:rgba(78,168,224,.05);border:1px solid rgba(78,168,224,.2);border-radius:12px;padding:.9rem 1rem;margin-bottom:.8rem">
+          <div style="font-size:.72rem;font-weight:700;color:var(--sky);margin-bottom:.65rem">🔒 Public Provident Fund (PPF)</div>
+          <div class="grid2" style="gap:.6rem;margin-bottom:.5rem">
+            <div>
+              <div class="date-label">Monthly PPF Deposit ₹</div>
+              <input type="number" id="ppf-monthly" value="12500" min="500" max="12500" step="500" onchange="S.ppfMonthly=+this.value;render()"
+                style="width:100%;padding:.5rem .7rem;background:var(--surface);border:1.5px solid var(--border2);border-radius:8px;color:var(--sky);font-size:.82rem;outline:none;font-family:'DM Sans'">
+            </div>
+            <div>
+              <div class="date-label">PPF Interest Rate %</div>
+              <input type="number" id="ppf-rate" value="7.1" min="0" max="12" step="0.05" onchange="S.ppfRate=+this.value;render()"
+                style="width:100%;padding:.5rem .7rem;background:var(--surface);border:1.5px solid var(--border2);border-radius:8px;color:var(--sky);font-size:.82rem;outline:none;font-family:'DM Sans'">
+            </div>
+          </div>
+          <div style="font-size:.68rem;color:var(--muted)">⚡ PPF interest <strong style="color:var(--sky)">credited yearly</strong> on lowest balance between 5th & last day of each month. Max ₹1.5L/yr (₹12,500/mo).</div>
+          <div id="ppf-proj-row" style="margin-top:.5rem"></div>
+        </div>
+
+        <!-- NPS Section -->
+        <div style="background:rgba(149,128,245,.05);border:1px solid rgba(149,128,245,.2);border-radius:12px;padding:.9rem 1rem;margin-bottom:.8rem">
+          <div style="font-size:.72rem;font-weight:700;color:var(--lavender);margin-bottom:.65rem">📊 NPS — National Pension System</div>
+          <div class="grid2" style="gap:.6rem;margin-bottom:.5rem">
+            <div>
+              <div class="date-label">Employee NPS % of Basic</div>
+              <input type="number" id="nps-emp-pct" value="10" min="0" max="100" step="1" onchange="S.npsEmpPct=+this.value;updateNpsAmounts();render()"
+                style="width:100%;padding:.5rem .7rem;background:var(--surface);border:1.5px solid var(--border2);border-radius:8px;color:var(--lavender);font-size:.82rem;outline:none;font-family:'DM Sans'">
+            </div>
+            <div>
+              <div class="date-label">Employer NPS % of Basic</div>
+              <input type="number" id="nps-emr-pct" value="14" min="0" max="14" step="1" onchange="S.npsEmrPct=+this.value;updateNpsAmounts();render()"
+                style="width:100%;padding:.5rem .7rem;background:var(--surface);border:1.5px solid var(--border2);border-radius:8px;color:var(--lavender);font-size:.82rem;outline:none;font-family:'DM Sans'">
+            </div>
+          </div>
+          <div class="grid2" style="gap:.6rem">
+            <div>
+              <div class="date-label">Monthly NPS (Auto-calc)</div>
+              <input type="number" id="nps-monthly-auto" readonly
+                style="width:100%;padding:.5rem .7rem;background:rgba(149,128,245,.05);border:1.5px solid rgba(149,128,245,.2);border-radius:8px;color:var(--lavender);font-size:.82rem;outline:none;font-family:'DM Sans';cursor:not-allowed">
+            </div>
+            <div>
+              <div class="date-label">NPS Assumed Return %</div>
+              <input type="number" id="nps-rate" value="10" min="0" max="18" step="0.5" onchange="S.npsRate=+this.value;render()"
+                style="width:100%;padding:.5rem .7rem;background:var(--surface);border:1.5px solid var(--border2);border-radius:8px;color:var(--lavender);font-size:.82rem;outline:none;font-family:'DM Sans'">
+            </div>
+          </div>
+          <div style="margin-top:.55rem;font-size:.68rem;color:var(--muted)">⚡ NPS compounded <strong style="color:var(--lavender)">monthly</strong> at assumed return rate. 60% tax-free at retirement, 40% goes to annuity.</div>
+          <div id="nps-proj-row" style="margin-top:.5rem"></div>
+        </div>
+
+        <!-- Contributions summary -->
+        <div class="card-inner" style="padding:.9rem 1rem" id="contrib-summary"></div>
+      </div>
+
+      <!-- Retirement Benefits card -->
+      <div class="card card-pad mb1" style="border-color:rgba(245,166,35,.2)">
+        <div class="section-header">
+          <span class="section-icon">🎁</span>
+          <span class="section-title" style="color:var(--amber)">Retirement Benefits</span>
+          <button class="calc-btn" onclick="toggleCalcPanel('retbene-calc')">🔢 How Calculated</button>
+        </div>
+        <div id="retbene-calc" class="calc-panel">
+          <div class="calc-step"><div class="calc-step-num">1</div><div><strong style="color:var(--amber)">Gratuity</strong>: (Basic/26) × 15 × years_of_service. Max ₹20L tax-free. Formula: <span class="calc-formula">Last Basic ÷ 26 × 15 × service_years</span></div></div>
+          <div class="calc-step"><div class="calc-step-num">2</div><div><strong style="color:var(--gold)">Leave Encashment</strong>: EL balance × (Basic + DA)/26. Max 300 days for central govt. Formula: <span class="calc-formula">EL days × (Basic+DA)/26</span></div></div>
+          <div class="calc-step"><div class="calc-step-num">3</div><div><strong style="color:var(--teal)">Commutation of Pension</strong>: Up to 40% of pension × commutation factor (age-based). Formula: <span class="calc-formula">40% × monthly pension × 12 × commutation_factor</span></div></div>
+          <div class="calc-step"><div class="calc-step-num">4</div><div><strong style="color:var(--sky)">Others</strong>: LTC, group insurance, superannuation fund — enter manually</div></div>
+          <div class="calc-result">All retirement benefits credited to corpus on retirement date in the Monthly Timeline</div>
+        </div>
+
+        <div style="font-size:.72rem;color:var(--text-sub);margin-bottom:.9rem;line-height:1.6">
+          Auto-estimates shown based on your salary & service years. Override to match your actual entitlements.
+        </div>
+
+        <!-- Years of service -->
+        <div id="si-service-years"></div>
+
+        <!-- Gratuity -->
+        <div style="background:rgba(245,166,35,.05);border:1px solid rgba(245,166,35,.2);border-radius:12px;padding:.9rem 1rem;margin-bottom:.8rem">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem">
+            <div style="font-size:.72rem;font-weight:700;color:var(--amber)">🎖️ Gratuity</div>
+            <div style="font-size:.7rem;color:var(--muted)">Formula estimate: <span id="gratuity-auto-val" style="color:var(--amber);font-weight:700">—</span></div>
+          </div>
+          <div id="si-gratuity"></div>
+          <div style="font-size:.67rem;color:var(--muted);margin-top:.2rem">Override above. Max ₹20L is tax-free. Balance taxable as per slab.</div>
+        </div>
+
+        <!-- Leave Encashment -->
+        <div style="background:rgba(200,164,90,.05);border:1px solid rgba(200,164,90,.2);border-radius:12px;padding:.9rem 1rem;margin-bottom:.8rem">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem">
+            <div style="font-size:.72rem;font-weight:700;color:var(--gold)">🏖️ Leave Encashment (EL)</div>
+            <div style="font-size:.7rem;color:var(--muted)">Formula estimate: <span id="el-auto-val" style="color:var(--gold);font-weight:700">—</span></div>
+          </div>
+          <div class="grid2" style="gap:.6rem;margin-bottom:.5rem">
+            <div>
+              <div class="date-label">EL Days Balance</div>
+              <input type="number" id="el-days" value="240" min="0" max="300" step="1" onchange="S.elDays=+this.value;updateRetBeneAuto();render()"
+                style="width:100%;padding:.5rem .7rem;background:var(--surface);border:1.5px solid var(--border2);border-radius:8px;color:var(--gold);font-size:.82rem;outline:none;font-family:'DM Sans'">
+            </div>
+            <div>
+              <div class="date-label">Leave Encashment ₹ (override)</div>
+              <input type="number" id="leave-enc-override" min="0" max="5000000" step="10000" placeholder="0 = use formula"
+                onchange="S.leaveEncOverride=+this.value;render()"
+                style="width:100%;padding:.5rem .7rem;background:var(--surface);border:1.5px solid var(--border2);border-radius:8px;color:var(--gold);font-size:.82rem;outline:none;font-family:'DM Sans'">
+            </div>
+          </div>
+          <div style="font-size:.67rem;color:var(--muted)">Max 300 days encashable at retirement. Tax-free for govt employees.</div>
+        </div>
+
+        <!-- Commutation of Pension -->
+        <div style="background:rgba(46,196,160,.05);border:1px solid rgba(46,196,160,.2);border-radius:12px;padding:.9rem 1rem;margin-bottom:.8rem">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem">
+            <div style="font-size:.72rem;font-weight:700;color:var(--teal)">🔄 Commutation of Pension</div>
+            <div style="font-size:.7rem;color:var(--muted)">Formula estimate: <span id="commut-auto-val" style="color:var(--teal);font-weight:700">—</span></div>
+          </div>
+          <div class="grid2" style="gap:.6rem;margin-bottom:.5rem">
+            <div>
+              <div class="date-label">Commute % of Pension (max 40%)</div>
+              <input type="number" id="commut-pct" value="40" min="0" max="40" step="5" onchange="S.commutPct=+this.value;updateRetBeneAuto();render()"
+                style="width:100%;padding:.5rem .7rem;background:var(--surface);border:1.5px solid var(--border2);border-radius:8px;color:var(--teal);font-size:.82rem;outline:none;font-family:'DM Sans'">
+            </div>
+            <div>
+              <div class="date-label">Commutation ₹ (override)</div>
+              <input type="number" id="commut-override" min="0" max="20000000" step="50000" placeholder="0 = use formula"
+                onchange="S.commutOverride=+this.value;render()"
+                style="width:100%;padding:.5rem .7rem;background:var(--surface);border:1.5px solid var(--border2);border-radius:8px;color:var(--teal);font-size:.82rem;outline:none;font-family:'DM Sans'">
+            </div>
+          </div>
+          <div style="font-size:.67rem;color:var(--muted)">Commutation factor depends on age at retirement. Typical factor ~8.194 at age 60 (Govt tables).</div>
+        </div>
+
+        <!-- Other benefits -->
+        <div style="background:rgba(78,168,224,.05);border:1px solid rgba(78,168,224,.2);border-radius:12px;padding:.9rem 1rem;margin-bottom:.8rem">
+          <div style="font-size:.72rem;font-weight:700;color:var(--sky);margin-bottom:.65rem">📦 Other Retirement Benefits</div>
+          <div class="grid2" style="gap:.6rem">
+            <div>
+              <div class="date-label">Group Insurance Maturity ₹</div>
+              <input type="number" id="grp-ins" value="0" min="0" max="5000000" step="10000" onchange="S.grpIns=+this.value;render()"
+                style="width:100%;padding:.5rem .7rem;background:var(--surface);border:1.5px solid var(--border2);border-radius:8px;color:var(--sky);font-size:.82rem;outline:none;font-family:'DM Sans'">
+            </div>
+            <div>
+              <div class="date-label">Superannuation Fund ₹</div>
+              <input type="number" id="superann" value="0" min="0" max="10000000" step="10000" onchange="S.superann=+this.value;render()"
+                style="width:100%;padding:.5rem .7rem;background:var(--surface);border:1.5px solid var(--border2);border-radius:8px;color:var(--sky);font-size:.82rem;outline:none;font-family:'DM Sans'">
+            </div>
+          </div>
+          <div style="margin-top:.6rem" class="grid2" style="gap:.6rem">
+            <div>
+              <div class="date-label">LTC Encashment ₹</div>
+              <input type="number" id="ltc-enc" value="0" min="0" max="1000000" step="5000" onchange="S.ltcEnc=+this.value;render()"
+                style="width:100%;padding:.5rem .7rem;background:var(--surface);border:1.5px solid var(--border2);border-radius:8px;color:var(--sky);font-size:.82rem;outline:none;font-family:'DM Sans'">
+            </div>
+            <div>
+              <div class="date-label">Any Other Benefit ₹</div>
+              <input type="number" id="other-bene" value="0" min="0" max="10000000" step="10000" onchange="S.otherBene=+this.value;render()"
+                style="width:100%;padding:.5rem .7rem;background:var(--surface);border:1.5px solid var(--border2);border-radius:8px;color:var(--sky);font-size:.82rem;outline:none;font-family:'DM Sans'">
+            </div>
+          </div>
+        </div>
+
+        <!-- Total retirement benefits summary -->
+        <div class="card-inner" style="padding:.9rem 1rem" id="retbene-summary"></div>
+      </div>
+
+      <!-- Existing One-Time Corpus card -->
       <div class="card card-pad mb1">
-        <div class="section-header"><span class="section-icon">💰</span><span class="section-title" style="color:var(--teal)">One-Time Corpus</span></div>
+        <div class="section-header"><span class="section-icon">💰</span><span class="section-title" style="color:var(--teal)">Current Corpus Balances</span></div>
+        <div style="font-size:.72rem;color:var(--text-sub);margin-bottom:.7rem">Enter your current balances today. Future growth is calculated automatically using the contribution rates and interest rules above.</div>
         <div id="si-savings"></div>
         <div id="si-pf"></div>
         <div id="si-ppf"></div>
         <div id="si-nps"></div>
-        <div id="si-gratuity"></div>
         <div class="card-inner" style="padding:.85rem 1rem;margin-top:.3rem" id="corpus-breakdown"></div>
       </div>
+
       <div class="card card-pad mb1">
-        <div class="section-header"><span class="section-icon">💳</span><span class="section-title" style="color:var(--gold)">SIP / Monthly Investment</span></div>
+        <div class="section-header"><span class="section-icon">💳</span><span class="section-title" style="color:var(--gold)">Additional SIP / Mutual Fund Investment</span></div>
+        <div style="font-size:.72rem;color:var(--text-sub);margin-bottom:.7rem">Over and above PF/PPF/NPS contributions.</div>
         <div id="si-sip"></div>
         <div id="si-sipstep"></div>
         <div class="alert" style="background:rgba(200,164,90,.06);border:1px solid rgba(200,164,90,.2);color:var(--text-sub);font-size:.72rem" id="sip-projection"></div>
@@ -1314,9 +1547,12 @@ button{font-family:'DM Sans',sans-serif;cursor:pointer}
               <tr>
                 <th style="text-align:left;min-width:110px">Period</th>
                 <th>Salary/mo</th>
-                <th>Investment/mo</th>
-                <th>Corpus</th>
-                <th>Expenses/mo</th>
+                <th>PF/mo</th>
+                <th>PPF/mo</th>
+                <th>NPS/mo</th>
+                <th>SIP/mo</th>
+                <th style="color:var(--mint)">Total Corpus</th>
+                <th>Expense/mo</th>
                 <th>Events</th>
               </tr>
             </thead>
@@ -1458,6 +1694,28 @@ const S = {
   events: [],
   // Feature 4: Month-end tracking
   lastCheckedMonth: '',
+  // Monthly contribution settings
+  basicPct: 50,           // Basic as % of gross
+  pfEmpPct: 12,           // Employee PF % of basic
+  pfEmrPct: 12,           // Employer PF % of basic
+  pfMonthlyOverride: 0,   // Manual override (0 = use auto)
+  pfRate: 8.25,           // EPF interest rate
+  vpfMonthly: 0,          // Voluntary PF extra monthly
+  ppfMonthly: 12500,      // PPF monthly deposit
+  ppfRate: 7.1,           // PPF interest rate
+  npsEmpPct: 10,          // NPS employee % of basic
+  npsEmrPct: 14,          // NPS employer % of basic
+  npsRate: 10,            // NPS assumed return %
+  // Retirement benefits
+  serviceYears: 30,       // years of service
+  elDays: 240,            // earned leave days
+  leaveEncOverride: 0,    // manual override
+  commutPct: 40,          // commutation %
+  commutOverride: 0,      // manual override
+  grpIns: 0,              // group insurance
+  superann: 0,            // superannuation
+  ltcEnc: 0,              // LTC encashment
+  otherBene: 0,           // other benefits
 };
 
 /* ════════════════════════════════
@@ -2879,6 +3137,9 @@ function initSliders(){
   makeSlider('si-pension','pension','Expected Monthly Pension',0,200000,500,{isCur:true,color:'var(--gold)'});
   makeSlider('si-gross','gross','Annual Gross Salary / Income',100000,10000000,50000,{isCur:true,color:'var(--gold)'});
   makeSlider('si-sal-increment','salIncrement','Annual Salary Increment %',0,25,0.5,{isPct:true,color:'var(--teal)'});
+  makeSlider('si-basic-pct','basicPct','Basic Pay as % of Gross',20,80,5,{isPct:true,color:'var(--teal)',note:'drives auto PF/NPS'});
+  makeSlider('si-service-years','serviceYears','Years of Service at Retirement',5,40,1,{color:'var(--amber)'});
+  makeSlider('si-gratuity','gratuity','Gratuity (override)',0,2000000,25000,{isCur:true,color:'var(--amber)'});
   makeSlider('si-otherinc','otherInc','Other Income (Interest / Rent)',0,2000000,10000,{isCur:true,color:'var(--amber)'});
   makeSlider('si-80c','s80c','Sec 80C (PPF/ELSS/LIC/EPF)',0,150000,5000,{isCur:true,color:'var(--teal)',note:'max ₹1.5L'});
   makeSlider('si-80d','s80d','Sec 80D (Health Insurance)',0,100000,5000,{isCur:true,color:'var(--mint)',note:'max ₹50K/₹1L sr.'});
@@ -3488,34 +3749,88 @@ function buildMonthlyProjection(){
   retDate.setDate(1); retDate.setHours(0,0,0,0);
 
   const totalMonths = Math.max(1, Math.round((retDate - today) / (30.44 * 24 * 3600 * 1000)));
-  const oneTime = S.savings + S.pf + S.ppf + S.nps + S.gratuity;
+
+  // Instrument balances
+  let pfBal   = S.pf;
+  let ppfBal  = S.ppf;
+  let npsBal  = S.nps;
+  let sipBal  = S.savings;  // savings/SIP/MF bucket
+  let ppfAccrued = 0;       // PPF accrual within year
+
+  const pfHalfR  = S.pfRate  / 100 / 2;
+  const ppfAnnR  = S.ppfRate / 100;
+  const npsMoR   = S.npsRate / 100 / 12;
+  const sipMoR   = S.preRet  / 100 / 12;
 
   const rows = [];
-  let corpus = oneTime;
-  let baseExpense = S.expenses;
 
   for(let mi = 0; mi < totalMonths; mi++){
     const dateObj = new Date(today);
     dateObj.setMonth(today.getMonth() + mi);
+    const monthOfYear = dateObj.getMonth(); // 0=Jan
 
-    const sip = S.sip * Math.pow(1 + S.sipStep/100, Math.floor(mi/12));
-    const salary = getSalaryForMonth(mi);
-    const expense = Math.round(baseExpense * Math.pow(1 + inflM, mi));
+    const pfMonthly  = getPfMonthlyTotal() + (S.vpfMonthly||0);
+    const ppfMonthly = S.ppfMonthly || 12500;
+    const npsMonthly = getNpsMonthlyTotal();
+    const sip        = S.sip * Math.pow(1 + S.sipStep/100, Math.floor(mi/12));
+    const salary     = getSalaryForMonth(mi);
+    const expense    = Math.round(S.expenses * Math.pow(1 + inflM, mi));
+
+    // --- PF: half-yearly compounding (Mar=2, Sep=8) ---
+    pfBal += pfMonthly;
+    if(monthOfYear === 2 || monthOfYear === 8){
+      pfBal *= (1 + pfHalfR);
+    }
+
+    // --- PPF: yearly compounding, interest on lowest bal 5th-to-last ---
+    ppfBal += ppfMonthly;
+    ppfAccrued += ppfMonthly;
+    if(monthOfYear === 2){  // March = year end for PPF
+      // Interest on (opening balance + half of annual deposits)
+      const interestBase = (ppfBal - ppfAccrued) + ppfAccrued * 0.5;
+      ppfBal += interestBase * ppfAnnR;
+      ppfAccrued = 0;
+    }
+
+    // --- NPS: monthly compounding ---
+    npsBal = npsBal * (1 + npsMoR) + npsMonthly;
+
+    // --- SIP/Savings: monthly compounding ---
+    sipBal = sipBal * (1 + sipMoR) + sip;
+
+    // --- Events impact ---
     const eventsThisMonth = getEventsForMonth(dateObj);
     const eventImpact = eventsThisMonth.filter(e=>e.impact).reduce((sum,e)=>{
       const sign = (e.type==='expense'||e.type==='medical') ? -1 : 1;
       return sum + sign * e.amount;
     }, 0);
+    sipBal += eventImpact;  // events hit the SIP/savings bucket
 
-    corpus = corpus * (1 + mR) + sip + eventImpact;
+    const corpus = Math.round(pfBal + ppfBal + npsBal + sipBal);
 
     rows.push({
       date: new Date(dateObj),
       monthIndex: mi,
-      salary, sip: Math.round(sip), corpus: Math.round(corpus),
+      salary, sip: Math.round(sip),
+      pfMonthly: Math.round(pfMonthly),
+      ppfMonthly: Math.round(ppfMonthly),
+      npsMonthly: Math.round(npsMonthly),
+      pfBal: Math.round(pfBal),
+      ppfBal: Math.round(ppfBal),
+      npsBal: Math.round(npsBal),
+      sipBal: Math.round(sipBal),
+      corpus,
       expense, events: eventsThisMonth, eventImpact: Math.round(eventImpact),
     });
   }
+
+  // Add retirement benefits to last row corpus
+  if(rows.length > 0){
+    const B = calcRetirementBenefits();
+    rows[rows.length-1].corpus += B.total;
+    rows[rows.length-1].retBenefits = B.total;
+  }
+
   return rows;
 }
 
@@ -3621,22 +3936,31 @@ function buildTimelineRows(rows, type){
     const evBadge = hasEvents ? `<span class="event-badge" style="background:rgba(245,166,35,.15);color:var(--amber)">⚡</span>` : '';
 
     if(type === 'pre'){
+      const totalMonthly = last.pfMonthly + last.ppfMonthly + last.npsMonthly + last.sip;
+      const retBeneText = last.retBenefits ? `<span class="event-badge" style="background:rgba(245,166,35,.15);color:var(--amber)">🎁 ${inr(last.retBenefits)}</span>` : '';
       html += `<tr class="yr-row" onclick="toggleYearRows('${type}-${yr}', this)">
         <td>${yr} — Yr ${yrRows[0].date.getFullYear() - new Date().getFullYear() + 1} ${evBadge}</td>
         <td style="color:var(--teal)">${inr(last.salary)}</td>
+        <td style="color:var(--teal)">${inr(last.pfMonthly)}</td>
+        <td style="color:var(--sky)">${inr(last.ppfMonthly)}</td>
+        <td style="color:var(--lavender)">${inr(last.npsMonthly)}</td>
         <td style="color:var(--gold)">${inr(last.sip)}</td>
-        <td style="color:var(--mint)">${inr(last.corpus)}</td>
+        <td style="color:var(--mint);font-weight:700">${inr(last.corpus)} ${retBeneText}</td>
         <td style="color:var(--rose)">${inr(last.expense)}</td>
         <td>${hasEvents?`<span style="font-size:.68rem;color:var(--amber)">⚡ ${yrRows.filter(r=>r.events.length).length} events</span>`:'—'}</td>
       </tr>`;
       yrRows.forEach(r=>{
         const mo = r.date.toLocaleDateString('en-IN',{month:'short',year:'numeric'});
         const evText = r.events.length ? r.events.map(e=>`<span class="event-badge" style="background:${getEventColor(e.type)}22;color:${getEventColor(e.type)}">${getEventIcon(e.type)} ${e.desc}</span>`).join(' ') : '—';
+        const retBadge = r.retBenefits ? `<span class="event-badge" style="background:rgba(245,166,35,.15);color:var(--amber)">🎁 Benefits</span>` : '';
         html += `<tr class="mo-row" data-group="${type}-${yr}">
           <td style="padding-left:1.5rem">${mo}</td>
           <td>${inr(r.salary)}</td>
+          <td style="color:var(--teal)">${inr(r.pfMonthly)}</td>
+          <td style="color:var(--sky)">${inr(r.ppfMonthly)}</td>
+          <td style="color:var(--lavender)">${inr(r.npsMonthly)}</td>
           <td>${inr(r.sip)}</td>
-          <td style="color:var(--mint)">${inr(r.corpus)}</td>
+          <td style="color:var(--mint)">${inr(r.corpus)} ${retBadge}</td>
           <td>${inr(r.expense)}</td>
           <td>${evText}</td>
         </tr>`;
@@ -3965,14 +4289,251 @@ function renderManualSalaryInputs(){
 ════════════════════════════════ */
 setInterval(saveCurrentUserState, 30000);
 
+/* ════════════════════════════════════════════════
+   CONTRIBUTION HELPERS — PF / PPF / NPS
+════════════════════════════════════════════════ */
+
+function getBasicMonthly(){
+  return Math.round((S.gross / 12) * (S.basicPct / 100));
+}
+
+function getPfMonthlyTotal(){
+  const basic = getBasicMonthly();
+  const auto = Math.round(basic * (S.pfEmpPct + S.pfEmrPct) / 100);
+  return S.pfMonthlyOverride > 0 ? S.pfMonthlyOverride : auto;
+}
+
+function getNpsMonthlyTotal(){
+  const basic = getBasicMonthly();
+  return Math.round(basic * (S.npsEmpPct + S.npsEmrPct) / 100);
+}
+
+function updatePfAmounts(){
+  const auto = Math.round(getBasicMonthly() * ((S.pfEmpPct||12) + (S.pfEmrPct||12)) / 100);
+  const el = document.getElementById('pf-monthly-auto');
+  if(el) el.value = auto.toLocaleString('en-IN');
+}
+
+function updateNpsAmounts(){
+  const auto = getNpsMonthlyTotal();
+  const el = document.getElementById('nps-monthly-auto');
+  if(el) el.value = auto.toLocaleString('en-IN');
+}
+
+/* PF corpus with half-yearly compounding (Mar & Sep) */
+function calcPfCorpus(currentBalance, monthlyContrib, ratePA, months){
+  // Half-yearly effective rate
+  const rH = ratePA / 100 / 2;   // rate per half-year
+  let balance = currentBalance;
+  let accruedMonthly = 0;
+
+  for(let m = 0; m < months; m++){
+    accruedMonthly += monthlyContrib + (S.vpfMonthly || 0);
+    // At end of March (m%12===2) and September (m%12===8) — credit interest
+    const monthOfYear = m % 12;
+    if(monthOfYear === 2 || monthOfYear === 8){
+      // Interest on opening balance + contributions during half
+      balance += accruedMonthly;
+      balance *= (1 + rH);
+      accruedMonthly = 0;
+    }
+  }
+  // Any remaining contribution not yet credited
+  if(accruedMonthly > 0) balance += accruedMonthly;
+  return Math.round(balance);
+}
+
+/* PPF corpus with yearly compounding on lowest balance 5th-to-last */
+function calcPpfCorpus(currentBalance, monthlyDeposit, ratePA, months){
+  const years = Math.floor(months / 12);
+  const remMonths = months % 12;
+  let balance = currentBalance;
+  const annual = monthlyDeposit * 12;
+  const r = ratePA / 100;
+
+  for(let y = 0; y < years; y++){
+    // PPF rule: interest on lowest balance between 5th and last day of month
+    // Simplified: interest on opening balance + deposits made before 5th
+    // We model: half deposits count for current year interest
+    const interestBase = balance + annual * 0.5;
+    balance += annual;
+    balance += interestBase * r;
+  }
+  // Partial year — deposits only, no interest credit yet
+  balance += monthlyDeposit * remMonths;
+  return Math.round(balance);
+}
+
+/* NPS corpus with monthly compounding */
+function calcNpsCorpus(currentBalance, monthlyContrib, ratePA, months){
+  const rM = ratePA / 100 / 12;
+  let balance = currentBalance;
+  for(let m = 0; m < months; m++){
+    balance = balance * (1 + rM) + monthlyContrib;
+  }
+  return Math.round(balance);
+}
+
+/* ════════════════════════════════════════════════
+   RETIREMENT BENEFITS CALCULATOR
+════════════════════════════════════════════════ */
+
+function calcRetirementBenefits(){
+  const basic = getBasicMonthly();
+  const da = basic * 0.5; // approximate DA at 50% of basic
+
+  // Gratuity: (Basic/26) × 15 × service_years (max ₹20L)
+  const gratuityAuto = Math.min(2000000, Math.round((basic / 26) * 15 * S.serviceYears));
+  const gratuityFinal = S.gratuity > 0 ? S.gratuity : gratuityAuto;
+
+  // Leave Encashment: EL_days × (Basic+DA)/26
+  const leaveEncAuto = Math.round(S.elDays * (basic + da) / 26);
+  const leaveEncFinal = S.leaveEncOverride > 0 ? S.leaveEncOverride : leaveEncAuto;
+
+  // Commutation: commutPct% × monthly_pension × 12 × commutation_factor
+  // Commutation factor at age 60 ≈ 8.194 (Govt of India tables)
+  const commutFactor = 8.194;
+  const monthlyPension = S.pension;
+  const commutAuto = Math.round((S.commutPct / 100) * monthlyPension * 12 * commutFactor);
+  const commutFinal = S.commutOverride > 0 ? S.commutOverride : commutAuto;
+
+  const total = gratuityFinal + leaveEncFinal + commutFinal +
+    (S.grpIns||0) + (S.superann||0) + (S.ltcEnc||0) + (S.otherBene||0);
+
+  return {
+    gratuityAuto, gratuityFinal,
+    leaveEncAuto, leaveEncFinal,
+    commutAuto, commutFinal,
+    grpIns: S.grpIns||0, superann: S.superann||0,
+    ltcEnc: S.ltcEnc||0, otherBene: S.otherBene||0,
+    total
+  };
+}
+
+function renderRetirementBenefitsUI(){
+  const B = calcRetirementBenefits();
+
+  // Update auto-estimate labels
+  const gav = document.getElementById('gratuity-auto-val');
+  if(gav) gav.textContent = inr(B.gratuityAuto);
+  const elv = document.getElementById('el-auto-val');
+  if(elv) elv.textContent = inr(B.leaveEncAuto);
+  const cmv = document.getElementById('commut-auto-val');
+  if(cmv) cmv.textContent = inr(B.commutAuto);
+
+  // Summary
+  const sumEl = document.getElementById('retbene-summary');
+  if(sumEl) sumEl.innerHTML = `
+    <div style="font-size:.68rem;color:var(--amber);font-weight:700;margin-bottom:.6rem">🎁 Total Retirement Benefits</div>
+    ${[
+      ['Gratuity', B.gratuityFinal, COLORS.amber, B.gratuityFinal!==B.gratuityAuto?'(override)':'(formula)'],
+      ['Leave Encashment', B.leaveEncFinal, COLORS.gold, B.leaveEncFinal!==B.leaveEncAuto?'(override)':'(formula)'],
+      ['Commutation of Pension', B.commutFinal, COLORS.teal, B.commutFinal!==B.commutAuto?'(override)':'(formula)'],
+      ...(B.grpIns?[['Group Insurance', B.grpIns, COLORS.sky, '']]: []),
+      ...(B.superann?[['Superannuation', B.superann, COLORS.lavender, '']]: []),
+      ...(B.ltcEnc?[['LTC Encashment', B.ltcEnc, COLORS.mint, '']]: []),
+      ...(B.otherBene?[['Other Benefits', B.otherBene, COLORS.sky, '']]: []),
+    ].map(([l,v,c,note])=>`<div class="row-stat">
+      <span class="rs-label">${l} <span style="font-size:.6rem;color:var(--muted)">${note}</span></span>
+      <span class="rs-val" style="color:${c}">${inr(v)}</span>
+    </div>`).join('')}
+    <div style="border-top:2px solid var(--border2);margin-top:.4rem;padding-top:.5rem;display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:.78rem;font-weight:700;color:var(--text)">Total Benefits at Retirement</span>
+      <span style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:var(--amber)">${inr(B.total)}</span>
+    </div>
+    <div style="font-size:.67rem;color:var(--muted);margin-top:.4rem">✅ These will be credited to your corpus on retirement date in the Monthly Timeline.</div>`;
+}
+
+function renderContribSummary(){
+  const yrs = Math.max(1, S.retAge - S.age);
+  const months = yrs * 12;
+  const pfMonthly = getPfMonthlyTotal();
+  const ppfMonthly = S.ppfMonthly || 12500;
+  const npsMonthly = getNpsMonthlyTotal();
+  const basic = getBasicMonthly();
+
+  const pfFinal = calcPfCorpus(S.pf, pfMonthly, S.pfRate, months);
+  const ppfFinal = calcPpfCorpus(S.ppf, ppfMonthly, S.ppfRate, months);
+  const npsFinal = calcNpsCorpus(S.nps, npsMonthly, S.npsRate, months);
+
+  const pfInterest = pfFinal - S.pf - pfMonthly * months;
+  const ppfInterest = ppfFinal - S.ppf - ppfMonthly * months;
+  const npsInterest = npsFinal - S.nps - npsMonthly * months;
+
+  // Update auto-calc display fields
+  const pfAutoEl = document.getElementById('pf-monthly-auto');
+  if(pfAutoEl) pfAutoEl.value = getPfMonthlyTotal().toLocaleString('en-IN');
+  const npsAutoEl = document.getElementById('nps-monthly-auto');
+  if(npsAutoEl) npsAutoEl.value = npsMonthly.toLocaleString('en-IN');
+
+  // Projection rows
+  const setProjRow = (id, monthly, finalVal, interestEarned, color, rule) => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.innerHTML = `<div style="background:${color}0d;border:1px solid ${color}22;border-radius:8px;padding:.45rem .7rem;font-size:.68rem;display:flex;gap:.6rem;flex-wrap:wrap;align-items:center">
+      <span style="color:var(--text-sub)">Monthly: <strong style="color:${color}">${inr(monthly)}</strong></span>
+      <span style="color:var(--text-sub)">Interest earned: <strong style="color:${color}">${inr(Math.max(0,interestEarned))}</strong></span>
+      <span style="color:var(--text-sub)">At retirement: <strong style="color:${color}">${inr(finalVal)}</strong></span>
+      <span style="color:var(--muted);font-style:italic">${rule}</span>
+    </div>`;
+  };
+  setProjRow('pf-proj-row', pfMonthly + (S.vpfMonthly||0), pfFinal, pfInterest, COLORS.teal, '½-yrly compound');
+  setProjRow('ppf-proj-row', ppfMonthly, ppfFinal, ppfInterest, COLORS.sky, 'yearly compound');
+  setProjRow('nps-proj-row', npsMonthly, npsFinal, npsInterest, COLORS.lavender, 'monthly compound');
+
+  const el = document.getElementById('contrib-summary');
+  if(!el) return;
+
+  const totalMonthly = pfMonthly + ppfMonthly + npsMonthly + (S.vpfMonthly||0);
+  const totalAtRet = pfFinal + ppfFinal + npsFinal;
+  const totalContributed = totalMonthly * months;
+  const totalInterest = totalAtRet - (S.pf + S.ppf + S.nps) - totalContributed;
+
+  el.innerHTML = `
+    <div style="font-size:.68rem;color:var(--teal);font-weight:700;margin-bottom:.6rem">📊 Monthly Contribution Summary</div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.7rem">
+      ${[
+        ['Basic Pay', inr(basic)+'/mo', COLORS.gold],
+        ['Total PF', inr(pfMonthly+(S.vpfMonthly||0))+'/mo', COLORS.teal],
+        ['PPF', inr(ppfMonthly)+'/mo', COLORS.sky],
+        ['NPS', inr(npsMonthly)+'/mo', COLORS.lavender],
+        ['Total/mo', inr(totalMonthly), COLORS.mint],
+      ].map(([l,v,c])=>`<div style="background:var(--surface);border-radius:8px;padding:.4rem .65rem;border:1px solid var(--border)">
+        <div style="font-size:.58rem;color:var(--muted)">${l}</div>
+        <div style="font-size:.78rem;color:${c};font-weight:700">${v}</div>
+      </div>`).join('')}
+    </div>
+    ${[
+      ['PF corpus at retirement', inr(pfFinal), inr(pfInterest>0?pfInterest:0)+' interest (½-yr)', COLORS.teal],
+      ['PPF corpus at retirement', inr(ppfFinal), inr(ppfInterest>0?ppfInterest:0)+' interest (yearly)', COLORS.sky],
+      ['NPS corpus at retirement', inr(npsFinal), inr(npsInterest>0?npsInterest:0)+' returns (monthly)', COLORS.lavender],
+    ].map(([l,v,s,c])=>`<div class="row-stat">
+      <span class="rs-label">${l}<br><span style="font-size:.62rem;color:${c}">${s}</span></span>
+      <span class="rs-val" style="color:${c}">${v}</span>
+    </div>`).join('')}
+    <div style="border-top:2px solid var(--border2);margin-top:.4rem;padding-top:.5rem;display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:.76rem;font-weight:700;color:var(--text)">Combined PF+PPF+NPS at Retirement</span>
+      <span style="font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;color:var(--mint)">${inr(totalAtRet)}</span>
+    </div>
+    <div style="font-size:.67rem;color:var(--muted);margin-top:.35rem">Total interest/returns earned: <strong style="color:var(--mint)">${inr(Math.max(0,totalInterest))}</strong> over ${yrs} years</div>`;
+}
+
+/* ════════════════════════════════════════════════
+   PATCH: updateRetBeneAuto  (called from HTML inputs)
+════════════════════════════════════════════════ */
+function updateRetBeneAuto(){
+  renderRetirementBenefitsUI();
+}
+
 /* ════════════════════════════════
-   PATCH: renderConfigSummaries to add
-   monthly expense projection (Feature 5)
+   PATCH: renderConfigSummaries
 ════════════════════════════════ */
 const _origRCS = renderConfigSummaries;
 const _patchedRCS = function(C){
   _origRCS(C);
   renderMonthlyExpenseProjection(C);
+  renderContribSummary();
+  renderRetirementBenefitsUI();
 };
 renderConfigSummaries = _patchedRCS;
 
@@ -4018,6 +4579,33 @@ window.addEventListener('DOMContentLoaded',()=>{
 
     // Feature 3: Salary mode
     if(S.salaryMode) setSalaryMode(S.salaryMode);
+
+    // Initialize contribution fields from saved state
+    const setVal = (id, val) => { const el=document.getElementById(id); if(el && val!==undefined) el.value=val; };
+    setVal('pf-emp-pct', S.pfEmpPct||12);
+    setVal('pf-emr-pct', S.pfEmrPct||12);
+    setVal('pf-rate', S.pfRate||8.25);
+    setVal('vpf-monthly', S.vpfMonthly||0);
+    setVal('ppf-monthly', S.ppfMonthly||12500);
+    setVal('ppf-rate', S.ppfRate||7.1);
+    setVal('nps-emp-pct', S.npsEmpPct||10);
+    setVal('nps-emr-pct', S.npsEmrPct||14);
+    setVal('nps-rate', S.npsRate||10);
+    setVal('el-days', S.elDays||240);
+    setVal('commut-pct', S.commutPct||40);
+    setVal('da-jan', S.daJan||3);
+    setVal('da-jul', S.daJul||3);
+    if(S.pfMonthlyOverride) setVal('pf-monthly-override', S.pfMonthlyOverride);
+    if(S.leaveEncOverride)  setVal('leave-enc-override', S.leaveEncOverride);
+    if(S.commutOverride)    setVal('commut-override', S.commutOverride);
+    if(S.grpIns)   setVal('grp-ins', S.grpIns);
+    if(S.superann) setVal('superann', S.superann);
+    if(S.ltcEnc)   setVal('ltc-enc', S.ltcEnc);
+    if(S.otherBene) setVal('other-bene', S.otherBene);
+    updatePfAmounts();
+    updateNpsAmounts();
+    renderContribSummary();
+    renderRetirementBenefitsUI();
 
     // Feature 6: Render events if any
     if(S.events && S.events.length) renderEventsPage(calc());
