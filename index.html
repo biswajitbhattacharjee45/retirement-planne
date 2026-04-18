@@ -304,6 +304,86 @@ button{font-family:'DM Sans',sans-serif;cursor:pointer}
 .glow-gold{box-shadow:0 4px 20px rgba(200,164,90,.12)}
 .glow-rose{box-shadow:0 4px 20px rgba(232,85,106,.12)}
 
+/* ════ FEATURE 1: Retirement Date Picker ════ */
+.date-picker-wrap{display:flex;gap:.6rem;align-items:flex-end;flex-wrap:wrap;margin-bottom:1rem}
+.date-input-group{flex:1;min-width:130px}
+.date-label{font-size:.62rem;color:var(--text-sub);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:.35rem}
+.date-input{width:100%;padding:.6rem .8rem;background:rgba(255,255,255,.04);border:1.5px solid var(--border2);border-radius:10px;color:var(--text);font-size:.82rem;font-family:'DM Sans';outline:none;transition:.2s}
+.date-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(200,164,90,.12)}
+.ret-date-result{background:linear-gradient(135deg,rgba(200,164,90,.1),rgba(200,164,90,.05));border:1px solid rgba(200,164,90,.25);border-radius:12px;padding:.85rem 1rem;margin-top:.6rem}
+.ret-date-pill{display:inline-flex;align-items:center;gap:.4rem;background:rgba(200,164,90,.12);border:1px solid rgba(200,164,90,.3);border-radius:20px;padding:.3rem .75rem;font-size:.72rem;color:var(--gold);font-weight:700;margin:.2rem}
+.countdown-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin-top:.7rem}
+.countdown-cell{text-align:center;background:var(--surface);border-radius:10px;padding:.6rem .3rem;border:1px solid var(--border)}
+.countdown-num{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;line-height:1}
+.countdown-lbl{font-size:.58rem;color:var(--muted);margin-top:.18rem;text-transform:uppercase;letter-spacing:.08em}
+
+/* ════ FEATURE 2: Calc Explainer ════ */
+.calc-btn{display:inline-flex;align-items:center;gap:.35rem;background:rgba(78,168,224,.08);border:1px solid rgba(78,168,224,.25);color:var(--sky);font-size:.65rem;font-weight:600;padding:.25rem .65rem;border-radius:20px;cursor:pointer;transition:.2s;margin-left:auto}
+.calc-btn:hover{background:rgba(78,168,224,.15);border-color:rgba(78,168,224,.4)}
+.calc-panel{display:none;background:rgba(7,12,20,.95);border:1px solid rgba(78,168,224,.25);border-radius:12px;padding:1rem;margin-top:.6rem;font-size:.73rem;line-height:1.8}
+.calc-panel.open{display:block;animation:fadeUp .3s ease}
+.calc-step{display:flex;gap:.5rem;margin-bottom:.3rem;align-items:flex-start}
+.calc-step-num{min-width:20px;height:20px;border-radius:50%;background:rgba(78,168,224,.15);border:1px solid rgba(78,168,224,.3);color:var(--sky);font-size:.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.calc-formula{font-family:monospace;font-size:.72rem;background:rgba(78,168,224,.06);border:1px solid rgba(78,168,224,.18);border-radius:6px;padding:.2rem .5rem;color:var(--sky);display:inline-block;margin:.15rem 0}
+.calc-result{background:rgba(46,196,160,.08);border:1px solid rgba(46,196,160,.25);border-radius:8px;padding:.5rem .8rem;color:var(--teal);font-weight:700;margin-top:.4rem;font-size:.76rem}
+
+/* ════ FEATURE 3: Monthly Timeline ════ */
+.timeline-wrap{overflow-x:auto}
+.timeline-table{width:100%;border-collapse:collapse;font-size:.72rem;min-width:700px}
+.timeline-table th{padding:.45rem .6rem;text-align:right;background:var(--surface);color:var(--text-sub);font-size:.6rem;text-transform:uppercase;letter-spacing:.08em;border-bottom:2px solid var(--border2);position:sticky;top:0;z-index:2}
+.timeline-table th:first-child{text-align:left}
+.timeline-table td{padding:.38rem .6rem;text-align:right;border-bottom:1px dashed var(--border);color:var(--text);transition:.15s}
+.timeline-table td:first-child{text-align:left;color:var(--text-sub);font-weight:600}
+.timeline-table tr.yr-row{background:rgba(200,164,90,.04);cursor:pointer}
+.timeline-table tr.yr-row:hover{background:rgba(200,164,90,.08)}
+.timeline-table tr.yr-row td{font-weight:700;color:var(--gold)}
+.timeline-table tr.yr-row td:first-child{color:var(--gold)}
+.timeline-table tr.mo-row{display:none;background:rgba(7,12,20,.4)}
+.timeline-table tr.mo-row td{font-size:.69rem;color:var(--text-sub)}
+.timeline-table tr.mo-row.visible{display:table-row}
+.timeline-table tr.yr-row.expanded td:first-child::before{content:'▼ ';font-size:.65rem}
+.timeline-table tr.yr-row:not(.expanded) td:first-child::before{content:'▶ ';font-size:.65rem}
+.event-badge{display:inline-block;padding:.08rem .4rem;border-radius:10px;font-size:.6rem;font-weight:700;margin-left:.3rem}
+.tl-tab-pills{display:flex;gap:.35rem;margin-bottom:.9rem;flex-wrap:wrap}
+
+/* ════ FEATURE 4: Month-end Banner ════ */
+#month-update-banner{
+  display:none;position:fixed;top:0;left:0;right:0;z-index:5000;
+  background:linear-gradient(135deg,#0d2a1a,#091a0d);
+  border-bottom:2px solid rgba(61,214,140,.4);
+  padding:.75rem 1.5rem;
+  display:flex;align-items:center;justify-content:space-between;gap:1rem;
+  animation:fadeIn .4s ease;
+}
+#month-update-banner.hidden{display:none!important}
+.banner-text{font-size:.78rem;color:var(--text);line-height:1.5}
+.banner-highlight{color:var(--mint);font-weight:700}
+.banner-actions{display:flex;gap:.5rem;flex-shrink:0}
+.banner-btn{padding:.45rem .9rem;border-radius:8px;font-size:.72rem;font-weight:700;cursor:pointer;transition:.2s;border:none}
+.banner-btn-primary{background:rgba(61,214,140,.2);border:1px solid rgba(61,214,140,.4)!important;color:var(--mint)}
+.banner-btn-primary:hover{background:rgba(61,214,140,.3)}
+.banner-btn-dismiss{background:rgba(255,255,255,.05);border:1px solid var(--border2)!important;color:var(--muted)}
+
+/* ════ FEATURE 5: Monthly Expense Tracker ════ */
+.expense-row{display:grid;grid-template-columns:1fr auto auto auto;gap:.5rem;align-items:center;padding:.5rem 0;border-bottom:1px dashed var(--border)}
+.expense-cat-badge{font-size:.62rem;padding:.12rem .45rem;border-radius:12px;font-weight:700}
+
+/* ════ FEATURE 6: Unexpected Events ════ */
+.event-card{background:var(--card2);border:1px solid var(--border2);border-radius:12px;padding:.85rem 1rem;margin-bottom:.65rem;transition:.2s;position:relative}
+.event-card:hover{border-color:var(--border);background:var(--card)}
+.event-type-income{border-left:3px solid var(--mint)}
+.event-type-expense{border-left:3px solid var(--rose)}
+.event-type-maturity{border-left:3px solid var(--gold)}
+.event-type-bonus{border-left:3px solid var(--teal)}
+.event-impact-toggle{display:flex;align-items:center;gap:.4rem;margin-top:.5rem}
+.toggle-switch{width:32px;height:18px;background:var(--border2);border-radius:9px;cursor:pointer;position:relative;transition:.2s;border:none;flex-shrink:0}
+.toggle-switch.on{background:rgba(61,214,140,.4)}
+.toggle-switch::after{content:'';position:absolute;width:12px;height:12px;border-radius:50%;background:#fff;top:3px;left:3px;transition:.2s}
+.toggle-switch.on::after{left:17px}
+.impact-chip{font-size:.64rem;padding:.15rem .5rem;border-radius:12px;font-weight:600}
+.impact-on{background:rgba(61,214,140,.12);border:1px solid rgba(61,214,140,.3);color:var(--mint)}
+.impact-off{background:rgba(58,82,106,.15);border:1px solid rgba(58,82,106,.3);color:var(--muted)}
+
 /* ── Number transition ── */
 .num{transition:all .4s ease}
 
@@ -461,6 +541,19 @@ button{font-family:'DM Sans',sans-serif;cursor:pointer}
 </style>
 </head>
 <body>
+<!-- ══ MONTH-END UPDATE BANNER (Feature 4) ══ -->
+<div id="month-update-banner" class="hidden">
+  <div class="banner-text">
+    📅 <span class="banner-highlight" id="banner-month-name">New month</span> has arrived!
+    Your retirement plan auto-updated — corpus grown by <span class="banner-highlight" id="banner-corpus-delta">—</span>,
+    salary projected to <span class="banner-highlight" id="banner-new-salary">—</span>.
+    <span id="banner-days-left" style="color:var(--text-sub)"></span>
+  </div>
+  <div class="banner-actions">
+    <button class="banner-btn banner-btn-primary" onclick="acceptMonthUpdate()">✓ Apply Update</button>
+    <button class="banner-btn banner-btn-dismiss" onclick="dismissMonthBanner()">Dismiss</button>
+  </div>
+</div>
 <!-- ══════════════════════════════════
      ONBOARDING SCREEN
 ══════════════════════════════════ -->
@@ -616,6 +709,15 @@ button{font-family:'DM Sans',sans-serif;cursor:pointer}
     </a>
     <a class="nav-item" data-page="scenarios" onclick="showPage('scenarios',this)">
       <span class="nav-icon">🔭</span> Scenarios
+    </a>
+    <div class="nav-section">New Features</div>
+    <a class="nav-item" data-page="timeline" onclick="showPage('timeline',this)">
+      <span class="nav-icon">📅</span> Monthly Timeline
+      <span class="nav-badge">NEW</span>
+    </a>
+    <a class="nav-item" data-page="events" onclick="showPage('events',this)">
+      <span class="nav-icon">⚡</span> Events Register
+      <span class="nav-badge">NEW</span>
     </a>
     <div class="nav-section">Account</div>
     <a class="nav-item" onclick="openUserModal()">
@@ -786,7 +888,36 @@ button{font-family:'DM Sans',sans-serif;cursor:pointer}
     <!-- Profile tab -->
     <div class="tab-content active" id="cfg-tab-0">
       <div class="card card-pad mb1">
-        <div class="section-header"><span class="section-icon">👤</span><span class="section-title" style="color:var(--sky)">Personal Timeline</span></div>
+        <div class="section-header"><span class="section-icon">📅</span><span class="section-title" style="color:var(--sky)">Retirement Date (Feature 1)</span></div>
+
+        <!-- Date of Birth + Retirement Date pickers -->
+        <div style="margin-bottom:1rem">
+          <div class="date-picker-wrap">
+            <div class="date-input-group">
+              <label class="date-label">📋 Date of Birth</label>
+              <input type="date" class="date-input" id="inp-dob" onchange="onDobChange()" style="color-scheme:dark">
+            </div>
+            <div class="date-input-group">
+              <label class="date-label">🎯 Exact Retirement Date</label>
+              <input type="date" class="date-input" id="inp-retdate" onchange="onRetDateChange()" style="color-scheme:dark">
+            </div>
+            <div style="flex-shrink:0;padding-bottom:.1rem">
+              <label class="date-label">Mode</label>
+              <select id="date-mode" onchange="onDateModeChange()" style="padding:.58rem .7rem;background:rgba(255,255,255,.04);border:1.5px solid var(--border2);border-radius:10px;color:var(--text);font-size:.8rem;font-family:'DM Sans';outline:none;cursor:pointer">
+                <option value="auto">Auto (DOB + Age)</option>
+                <option value="manual">Manual Date Entry</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="ret-date-result" id="ret-date-result">
+            <div style="font-size:.68rem;color:var(--muted);margin-bottom:.5rem">📊 Retirement Countdown</div>
+            <div id="ret-date-pills" style="display:flex;flex-wrap:wrap;gap:.3rem;margin-bottom:.6rem"></div>
+            <div class="countdown-grid" id="countdown-grid"></div>
+          </div>
+        </div>
+
+        <div class="section-header" style="margin-top:1.1rem"><span class="section-icon">👤</span><span class="section-title" style="color:var(--sky)">Personal Timeline</span></div>
         <div id="si-age"></div>
         <div id="si-retage"></div>
         <div id="si-lifeexp"></div>
@@ -799,6 +930,66 @@ button{font-family:'DM Sans',sans-serif;cursor:pointer}
           <div style="text-align:center"><div style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;color:var(--sky)" id="ps-ytret">—</div><div style="font-size:.6rem;color:var(--muted);margin-top:.1rem">Years to Retire</div></div>
           <div style="text-align:center"><div style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;color:var(--lavender)" id="ps-retspan">—</div><div style="font-size:.6rem;color:var(--muted);margin-top:.1rem">Retirement Span</div></div>
           <div style="text-align:center"><div style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;color:var(--rose)" id="ps-total">—</div><div style="font-size:.6rem;color:var(--muted);margin-top:.1rem">Total Plan (yrs)</div></div>
+        </div>
+        <!-- Exact days countdown -->
+        <div id="exact-days-row" style="display:none;margin-top:.8rem;text-align:center;padding:.7rem;background:rgba(78,168,224,.06);border:1px solid rgba(78,168,224,.2);border-radius:10px">
+          <span style="font-size:.72rem;color:var(--text-sub)">Exact days to retirement: </span>
+          <span style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:var(--sky)" id="exact-days-val">—</span>
+        </div>
+      </div>
+
+      <!-- Salary projection (Feature 3 input) -->
+      <div class="card card-pad mb1">
+        <div class="section-header"><span class="section-icon">💼</span><span class="section-title" style="color:var(--teal)">Salary Growth Settings</span></div>
+        <div style="font-size:.72rem;color:var(--text-sub);margin-bottom:.9rem">Configure how your monthly salary grows till retirement — used in month-wise projections.</div>
+        <div id="si-gross"></div>
+
+        <!-- Salary mode toggles -->
+        <div style="font-size:.68rem;color:var(--text-sub);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.5rem">Salary Growth Mode</div>
+        <div class="grid3" style="gap:.5rem;margin-bottom:1rem">
+          <button class="regime-btn active" id="sal-mode-annual" onclick="setSalaryMode('annual')">
+            <div style="font-size:.72rem;font-weight:700;margin-bottom:.15rem">📈 Annual</div>
+            <div style="font-size:.6rem;color:var(--muted)">% increment/yr</div>
+          </button>
+          <button class="regime-btn" id="sal-mode-da" onclick="setSalaryMode('da')">
+            <div style="font-size:.72rem;font-weight:700;margin-bottom:.15rem">🏦 DA Revision</div>
+            <div style="font-size:.6rem;color:var(--muted)">SBI 6-monthly DA</div>
+          </button>
+          <button class="regime-btn" id="sal-mode-manual" onclick="setSalaryMode('manual')">
+            <div style="font-size:.72rem;font-weight:700;margin-bottom:.15rem">✏️ Manual</div>
+            <div style="font-size:.6rem;color:var(--muted)">Year-by-year</div>
+          </button>
+        </div>
+
+        <!-- Annual mode -->
+        <div id="sal-annual-section">
+          <div id="si-sal-increment"></div>
+        </div>
+
+        <!-- DA mode -->
+        <div id="sal-da-section" style="display:none">
+          <div style="background:rgba(46,196,160,.06);border:1px solid rgba(46,196,160,.2);border-radius:10px;padding:.8rem 1rem;font-size:.73rem;color:var(--text-sub);line-height:1.7">
+            🏦 <strong style="color:var(--teal)">SBI DA Revision Pattern</strong><br>
+            DA revised twice yearly (Jan & Jul) based on AICPI. Default: 3% every 6 months (~6%/yr).
+            <div style="display:flex;gap:.8rem;margin-top:.65rem;flex-wrap:wrap">
+              <div>
+                <label class="date-label" style="font-size:.62rem">Jan DA % (6-monthly)</label>
+                <input type="number" id="da-jan" value="3" min="0" max="10" step="0.5" onchange="S.daJan=+this.value;render()"
+                  style="width:70px;padding:.4rem .6rem;background:var(--surface);border:1.5px solid var(--border2);border-radius:8px;color:var(--teal);font-size:.82rem;text-align:center;outline:none;font-family:'DM Sans'">
+              </div>
+              <div>
+                <label class="date-label" style="font-size:.62rem">Jul DA % (6-monthly)</label>
+                <input type="number" id="da-jul" value="3" min="0" max="10" step="0.5" onchange="S.daJul=+this.value;render()"
+                  style="width:70px;padding:.4rem .6rem;background:var(--surface);border:1.5px solid var(--border2);border-radius:8px;color:var(--teal);font-size:.82rem;text-align:center;outline:none;font-family:'DM Sans'">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Manual mode -->
+        <div id="sal-manual-section" style="display:none">
+          <div style="font-size:.7rem;color:var(--text-sub);margin-bottom:.6rem">Enter your expected gross salary for each year until retirement.</div>
+          <div id="sal-manual-list"></div>
         </div>
       </div>
     </div>
@@ -858,7 +1049,9 @@ button{font-family:'DM Sans',sans-serif;cursor:pointer}
             <div style="font-size:.62rem;color:var(--muted)">80C/80D/HRA deductions</div>
           </button>
         </div>
-        <div id="si-gross"></div>
+        <div class="alert" style="background:rgba(200,164,90,.06);border:1px solid rgba(200,164,90,.2);color:var(--text-sub);font-size:.72rem;margin-bottom:.8rem">
+          💼 <strong style="color:var(--gold)">Gross Income:</strong> Configure in <em>Profile → Salary Growth</em> tab. Current: <span id="tax-gross-ref" style="color:var(--gold);font-weight:700">—</span>/yr
+        </div>
         <div id="si-otherinc"></div>
         <div id="old-deductions" style="display:none">
           <div class="divider"></div>
@@ -1086,6 +1279,135 @@ button{font-family:'DM Sans',sans-serif;cursor:pointer}
     </div>
   </div>
 
+  <!-- ══ MONTHLY TIMELINE (Feature 3) ══ -->
+  <div class="page" id="page-timeline">
+    <div class="card card-pad fu mb1" style="animation-delay:.05s;border-color:rgba(78,168,224,.2)">
+      <div class="section-header">
+        <span class="section-icon">📅</span>
+        <span class="section-title" style="color:var(--sky)">Month-wise Projection to Retirement</span>
+        <button class="calc-btn" style="margin-left:auto" onclick="toggleCalcPanel('tl-calc')">🔢 How Calculated</button>
+      </div>
+      <div id="tl-calc" class="calc-panel">
+        <div class="calc-step"><div class="calc-step-num">1</div><div><strong style="color:var(--sky)">Monthly Salary</strong> = Previous salary × (1 + annual_increment/12)%</div></div>
+        <div class="calc-step"><div class="calc-step-num">2</div><div><strong style="color:var(--teal)">Investment (SIP)</strong> = Base SIP × (1 + sipStep%)^(year_number)</div></div>
+        <div class="calc-step"><div class="calc-step-num">3</div><div><strong style="color:var(--gold)">Corpus Growth</strong> = Previous corpus × (1 + preReturnRate/12) + SIP_this_month</div></div>
+        <div class="calc-step"><div class="calc-step-num">4</div><div><strong style="color:var(--lavender)">Monthly Expense</strong> = Base expenses × (1 + inflation/12)^(months_elapsed)</div></div>
+        <div class="calc-step"><div class="calc-step-num">5</div><div><strong style="color:var(--mint)">One-time Events</strong> added/subtracted from corpus on their event date</div></div>
+        <div class="calc-result">📌 Final row = Projected corpus at your exact retirement date</div>
+      </div>
+
+      <!-- Summary stats -->
+      <div class="grid4 gap1" style="margin-bottom:1.1rem" id="tl-summary-kpis"></div>
+
+      <!-- Tabs: Pre-ret / Post-ret -->
+      <div class="tl-tab-pills">
+        <button class="tab-pill active" onclick="switchTlTab('pre',this)">📈 Pre-Retirement</button>
+        <button class="tab-pill" onclick="switchTlTab('post',this)">📉 Post-Retirement</button>
+      </div>
+
+      <!-- Pre-retirement table -->
+      <div id="tl-pre" class="tab-content active">
+        <div style="font-size:.7rem;color:var(--muted);margin-bottom:.7rem" id="tl-pre-sub"></div>
+        <div class="timeline-wrap">
+          <table class="timeline-table" id="tl-table-pre">
+            <thead>
+              <tr>
+                <th style="text-align:left;min-width:110px">Period</th>
+                <th>Salary/mo</th>
+                <th>Investment/mo</th>
+                <th>Corpus</th>
+                <th>Expenses/mo</th>
+                <th>Events</th>
+              </tr>
+            </thead>
+            <tbody id="tl-body-pre"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Post-retirement table -->
+      <div id="tl-post" class="tab-content">
+        <div style="font-size:.7rem;color:var(--muted);margin-bottom:.7rem" id="tl-post-sub"></div>
+        <div class="timeline-wrap">
+          <table class="timeline-table" id="tl-table-post">
+            <thead>
+              <tr>
+                <th style="text-align:left;min-width:110px">Period</th>
+                <th>Corpus</th>
+                <th>Monthly Income</th>
+                <th>Monthly Expense</th>
+                <th>Net Flow</th>
+                <th>Events</th>
+              </tr>
+            </thead>
+            <tbody id="tl-body-post"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ EVENTS REGISTER (Feature 6) ══ -->
+  <div class="page" id="page-events">
+    <div class="card card-pad fu mb1" style="animation-delay:.05s;border-color:rgba(245,166,35,.2)">
+      <div class="section-header">
+        <span class="section-icon">⚡</span>
+        <span class="section-title" style="color:var(--amber)">Unexpected Events Register</span>
+        <button onclick="addEvent()" style="margin-left:auto;padding:.35rem .8rem;background:rgba(200,164,90,.12);border:1px solid rgba(200,164,90,.3);color:var(--gold);font-size:.72rem;font-weight:700;border-radius:8px;cursor:pointer">+ Add Event</button>
+      </div>
+      <div style="font-size:.73rem;color:var(--text-sub);margin-bottom:.9rem;line-height:1.7">
+        Record one-time financial events (insurance maturity, bonus, medical emergency, property sale, etc.).
+        Toggle <strong style="color:var(--mint)">Impact ON</strong> to include them in your corpus projections.
+      </div>
+
+      <!-- Impact summary -->
+      <div class="grid3 gap1" style="margin-bottom:1.1rem" id="events-summary-kpis"></div>
+
+      <!-- Events list -->
+      <div id="events-list"></div>
+
+      <!-- Add event form -->
+      <div id="add-event-form" style="display:none;background:rgba(200,164,90,.05);border:1px solid rgba(200,164,90,.2);border-radius:14px;padding:1.1rem;margin-top:.8rem">
+        <div style="font-size:.8rem;font-weight:700;color:var(--gold);margin-bottom:.9rem">➕ Add New Event</div>
+        <div class="grid2 gap1" style="margin-bottom:.8rem">
+          <div>
+            <label class="date-label">Event Date</label>
+            <input type="date" id="ev-date" class="date-input" style="color-scheme:dark">
+          </div>
+          <div>
+            <label class="date-label">Event Type</label>
+            <select id="ev-type" style="width:100%;padding:.6rem .8rem;background:rgba(255,255,255,.04);border:1.5px solid var(--border2);border-radius:10px;color:var(--text);font-size:.82rem;font-family:'DM Sans';outline:none">
+              <option value="income">💰 One-time Income</option>
+              <option value="expense">💸 Unexpected Expense</option>
+              <option value="maturity">🏦 Insurance / FD Maturity</option>
+              <option value="bonus">🎁 Bonus / Incentive</option>
+              <option value="property">🏠 Property / Asset Sale</option>
+              <option value="medical">🏥 Medical Emergency</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid2 gap1" style="margin-bottom:.8rem">
+          <div>
+            <label class="date-label">Description</label>
+            <input type="text" id="ev-desc" placeholder="e.g. LIC Policy Maturity" class="date-input">
+          </div>
+          <div>
+            <label class="date-label">Amount (₹)</label>
+            <input type="number" id="ev-amount" placeholder="500000" class="date-input" min="1">
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.8rem;margin-bottom:.9rem">
+          <input type="checkbox" id="ev-impact" checked style="accent-color:var(--mint);width:15px;height:15px">
+          <label for="ev-impact" style="font-size:.76rem;color:var(--text-sub);cursor:pointer">Include in corpus calculations & monthly projections</label>
+        </div>
+        <div style="display:flex;gap:.6rem">
+          <button onclick="saveEvent()" style="flex:1;padding:.7rem;background:linear-gradient(135deg,var(--gold-dk),var(--gold));color:#080c12;font-weight:800;border:none;border-radius:10px;cursor:pointer;font-family:'Playfair Display',serif;font-size:.9rem">Save Event</button>
+          <button onclick="cancelAddEvent()" style="padding:.7rem 1.2rem;background:rgba(255,255,255,.04);border:1px solid var(--border2);color:var(--muted);border-radius:10px;cursor:pointer;font-size:.8rem">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div><!-- /main -->
 </div><!-- /app -->
 
@@ -1097,6 +1419,8 @@ button{font-family:'DM Sans',sans-serif;cursor:pointer}
     <button class="mnav-item" onclick="showPage('analysis',this)" data-page="analysis"><span class="mnav-icon">📊</span>Analysis</button>
     <button class="mnav-item" onclick="showPage('tax',this)" data-page="tax"><span class="mnav-icon">🧾</span>Tax</button>
     <button class="mnav-item" onclick="showPage('scenarios',this)" data-page="scenarios"><span class="mnav-icon">🔭</span>Scenarios</button>
+    <button class="mnav-item" onclick="showPage('timeline',this)" data-page="timeline"><span class="mnav-icon">📅</span>Timeline</button>
+    <button class="mnav-item" onclick="showPage('events',this)" data-page="events"><span class="mnav-icon">⚡</span>Events</button>
   </div>
 </div>
 <script>
@@ -1119,7 +1443,21 @@ const S = {
     {id:2,label:"Home Renovation",year:5,amount:3000000},
     {id:3,label:"Travel / Pilgrimage",year:8,amount:500000}
   ],
-  scenario:'base'
+  scenario:'base',
+  // Feature 1: Retirement dates
+  dob: '',           // date string yyyy-mm-dd
+  retDate: '',       // exact retirement date
+  dateMode: 'auto',  // 'auto' | 'manual'
+  // Feature 3/4: Salary growth
+  salaryMode: 'annual',  // 'annual' | 'da' | 'manual'
+  salIncrement: 5,       // annual increment %
+  daJan: 3,              // DA revision Jan %
+  daJul: 3,              // DA revision Jul %
+  manualSalaries: {},    // {year: amount}
+  // Feature 6: Events register
+  events: [],
+  // Feature 4: Month-end tracking
+  lastCheckedMonth: '',
 };
 
 /* ════════════════════════════════
@@ -1617,6 +1955,8 @@ function render(){
   renderGoals(C);
   renderScenarios(C);
   renderConfigSummaries(C);
+  renderTimeline(C);
+  renderEventsPage(C);
   // Auto-save current user state on every render
   saveCurrentUserState();
 }
@@ -1957,6 +2297,10 @@ function renderAnalysis(C){
 function renderTax(C){
   const {activeT,oldT,newT,betterR,taxSaving,effRate,margRate,retInc,retTaxNew,retTaxOldVal,bestRetTax,save80c,save80d,save80ccd} = C;
   const totalInc = S.gross+S.otherInc;
+
+  // Update gross ref in tax tab
+  const tgr = document.getElementById('tax-gross-ref');
+  if(tgr) tgr.textContent = inr(S.gross);
 
   // KPIs
   const tkpis=document.getElementById('tax-kpis');
@@ -2306,10 +2650,10 @@ function renderConfigSummaries(C){
     ['One-Time Corpus at Retirement',inr(C.corpOT),COLORS.sky],
   ].map(([l,v,c])=>`<div class="row-stat"><span class="rs-label">${l}</span><span class="rs-val" style="color:${c}">${v}</span></div>`).join('');
 
-  // Lifestyle summary
+  // Lifestyle summary — will be enhanced by Feature 5 patch
   const ls=document.getElementById('lifestyle-summary');
   if(ls) ls.innerHTML=[
-    ["Today's Expenses",inr(S.expenses),COLORS.textSub],
+    ["Today's Expenses",inr(S.expenses),COLORS.teal],
     [`At Retirement (${S.inflation}% inflation)`,inr(C.inflExp),COLORS.lavender],
     ['Less: Pension','-'+inr(S.pension),COLORS.gold],
     ['Net Monthly Need',inr(C.netNeed),COLORS.rose],
@@ -2447,6 +2791,8 @@ const PAGE_TITLES = {
   tax:['Tax Planning','Income tax analysis & strategy'],
   goals:['Goals & Timeline','Big expenses, medical & legacy'],
   scenarios:['Scenario Analysis','What-if projections'],
+  timeline:['Monthly Timeline','Month-wise salary, investment & corpus projection'],
+  events:['Events Register','Unexpected income, expenses & insurance maturities'],
 };
 
 function showPage(pageId, clickedEl){
@@ -2532,6 +2878,7 @@ function initSliders(){
   makeSlider('si-expenses','expenses','Current Monthly Expenses',10000,500000,1000,{isCur:true,color:'var(--lavender)'});
   makeSlider('si-pension','pension','Expected Monthly Pension',0,200000,500,{isCur:true,color:'var(--gold)'});
   makeSlider('si-gross','gross','Annual Gross Salary / Income',100000,10000000,50000,{isCur:true,color:'var(--gold)'});
+  makeSlider('si-sal-increment','salIncrement','Annual Salary Increment %',0,25,0.5,{isPct:true,color:'var(--teal)'});
   makeSlider('si-otherinc','otherInc','Other Income (Interest / Rent)',0,2000000,10000,{isCur:true,color:'var(--amber)'});
   makeSlider('si-80c','s80c','Sec 80C (PPF/ELSS/LIC/EPF)',0,150000,5000,{isCur:true,color:'var(--teal)',note:'max ₹1.5L'});
   makeSlider('si-80d','s80d','Sec 80D (Health Insurance)',0,100000,5000,{isCur:true,color:'var(--mint)',note:'max ₹50K/₹1L sr.'});
@@ -2895,36 +3242,792 @@ function renderUserModal() {
   }).join('');
 }
 
+/* ════════════════════════════════════════════════
+   FEATURE 1: RETIREMENT DATE CALCULATIONS
+════════════════════════════════════════════════ */
+function onDobChange(){
+  const v = document.getElementById('inp-dob').value;
+  S.dob = v;
+  if(S.dateMode === 'auto' && v) {
+    // Auto-calculate retirement age → date
+    const dob = new Date(v);
+    const retDate = new Date(dob);
+    retDate.setFullYear(dob.getFullYear() + S.retAge);
+    S.retDate = retDate.toISOString().split('T')[0];
+    const ri = document.getElementById('inp-retdate');
+    if(ri) ri.value = S.retDate;
+  }
+  // Sync age
+  if(v){
+    const dob = new Date(v);
+    const today = new Date();
+    const age = Math.floor((today - dob) / (365.25 * 24 * 3600 * 1000));
+    if(age >= 25 && age <= 65){ S.age = age; const r = document.getElementById('si-range-age'); if(r){ r.value=age; updateSliderTrack('age'); } }
+  }
+  renderRetDateResult();
+  render();
+}
+
+function onRetDateChange(){
+  const v = document.getElementById('inp-retdate').value;
+  S.retDate = v;
+  if(S.dateMode === 'manual' && v && S.dob){
+    const dob = new Date(S.dob);
+    const rd = new Date(v);
+    const age = (rd - dob) / (365.25 * 24 * 3600 * 1000);
+    S.retAge = Math.round(age);
+    const r = document.getElementById('si-range-retage'); if(r){ r.value=S.retAge; updateSliderTrack('retage'); }
+  }
+  renderRetDateResult();
+  render();
+}
+
+function onDateModeChange(){
+  const mode = document.getElementById('date-mode').value;
+  S.dateMode = mode;
+  renderRetDateResult();
+  if(mode === 'auto') onDobChange();
+  else if(mode === 'manual') onRetDateChange();
+}
+
+function renderRetDateResult(){
+  const retRes = document.getElementById('ret-date-result');
+  if(!retRes) return;
+
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  let retDate = null;
+  if(S.retDate){ retDate = new Date(S.retDate); retDate.setHours(0,0,0,0); }
+  else if(S.dob){
+    retDate = new Date(S.dob);
+    retDate.setFullYear(retDate.getFullYear() + S.retAge);
+    retDate.setHours(0,0,0,0);
+  } else {
+    // Estimate from age
+    retDate = new Date(today);
+    retDate.setFullYear(today.getFullYear() + (S.retAge - S.age));
+  }
+
+  if(!retDate || isNaN(retDate)){
+    document.getElementById('exact-days-row').style.display = 'none';
+    return;
+  }
+
+  const diffMs = retDate - today;
+  const diffDays = Math.ceil(diffMs / (24*3600*1000));
+  const diffMonths = Math.floor(diffDays / 30.44);
+  const diffYears = Math.floor(diffDays / 365.25);
+  const remMonths = Math.floor((diffDays - diffYears*365.25) / 30.44);
+  const remDays = diffDays - Math.floor(diffDays / 30.44) * 30;
+
+  // Pills
+  const pillsEl = document.getElementById('ret-date-pills');
+  if(pillsEl){
+    const opts = {day:'2-digit',month:'long',year:'numeric'};
+    pillsEl.innerHTML = `
+      <span class="ret-date-pill">🎯 Retirement: ${retDate.toLocaleDateString('en-IN',opts)}</span>
+      <span class="ret-date-pill">📅 Today: ${today.toLocaleDateString('en-IN',opts)}</span>
+      ${diffDays > 0 ? `<span class="ret-date-pill" style="background:rgba(61,214,140,.12);border-color:rgba(61,214,140,.3);color:var(--mint)">⏳ ${diffDays} days remaining</span>` : '<span class="ret-date-pill" style="background:rgba(232,85,106,.12);border-color:rgba(232,85,106,.3);color:var(--rose)">✅ Retired!</span>'}
+    `;
+  }
+
+  // Countdown grid
+  const gridEl = document.getElementById('countdown-grid');
+  if(gridEl && diffDays > 0){
+    gridEl.innerHTML = [
+      [diffYears, 'Years'],
+      [remMonths, 'Months'],
+      [Math.floor((diffDays % 30.44)), 'Days'],
+      [Math.floor(diffDays / 7) % 52, 'Weeks left'],
+    ].map(([n,l])=>`<div class="countdown-cell">
+      <div class="countdown-num" style="color:var(--gold)">${n}</div>
+      <div class="countdown-lbl">${l}</div>
+    </div>`).join('');
+  }
+
+  // Exact days row
+  const edr = document.getElementById('exact-days-row');
+  const edv = document.getElementById('exact-days-val');
+  if(edr && edv){
+    edr.style.display = 'block';
+    edv.textContent = diffDays > 0 ? `${fmt(diffDays)} days (${diffYears}y ${remMonths}m)` : 'You are retired! 🎉';
+  }
+}
+
+/* ════════════════════════════════════════════════
+   FEATURE 2: CALC EXPLAINER PANELS
+════════════════════════════════════════════════ */
+function toggleCalcPanel(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.classList.toggle('open');
+  // If opening, regenerate content with live numbers
+  if(el.classList.contains('open') && el.dataset.live === 'true'){
+    generateLiveCalcContent(id);
+  }
+}
+
+function generateLiveCalcContent(panelId){
+  const C = calc();
+  // Panels will auto-update as they're generated dynamically in renderConfigSummaries
+}
+
+function calcExplainerHTML(title, steps, result){
+  return `<div style="margin:.5rem 0">
+    <button class="calc-btn" onclick="this.nextElementSibling.classList.toggle('open')">🔢 ${title}</button>
+    <div class="calc-panel">
+      ${steps.map((s,i)=>`<div class="calc-step"><div class="calc-step-num">${i+1}</div><div>${s}</div></div>`).join('')}
+      <div class="calc-result">= ${result}</div>
+    </div>
+  </div>`;
+}
+
+/* Attach calc explainer to KPI cards in dashboard */
+function attachKpiCalcExplainers(C){
+  const {yrs,rYrs,oneTime,corpOT,corpSIP,totalCorpus,totalReq,surplus,inflExp,netNeed,reqCorpus,activeT,effRate} = C;
+  const panels = {
+    'kpi-corpus': {
+      title:'Corpus Calculation',
+      steps:[
+        `One-time corpus: ${inr(oneTime)} × (1 + ${S.preRet}%)^${yrs} years = <span class="calc-formula">${inr(Math.round(corpOT))}</span>`,
+        `SIP corpus: Monthly ₹${fmt(S.sip)} with ${S.sipStep}%/yr step-up for ${yrs} years @ ${S.preRet}% = <span class="calc-formula">${inr(Math.round(corpSIP))}</span>`,
+        `<strong>Total = One-time + SIP = ${inr(Math.round(corpOT))} + ${inr(Math.round(corpSIP))}</strong>`,
+      ],
+      result: inr(totalCorpus)
+    },
+    'kpi-req': {
+      title:'Required Corpus Calculation',
+      steps:[
+        `Inflation-adjusted expense at retirement: ₹${fmt(S.expenses)} × (1 + ${S.inflation}%)^${yrs} = <span class="calc-formula">${inr(Math.round(inflExp))}/mo</span>`,
+        `Net monthly need (after pension ₹${fmt(S.pension)}): <span class="calc-formula">${inr(Math.round(netNeed))}/mo</span>`,
+        `Corpus for ${rYrs} years using real return ${(C.realR*100).toFixed(2)}%: <span class="calc-formula">${inr(Math.round(reqCorpus))}</span>`,
+        `Add big goals, medical buffer, legacy = <span class="calc-formula">${inr(Math.round(C.totalDed))}</span>`,
+      ],
+      result: inr(totalReq)
+    },
+    'kpi-tax': {
+      title:'Tax Calculation',
+      steps:[
+        `Gross income: ${inr(S.gross + S.otherInc)} (salary ${inr(S.gross)} + other ${inr(S.otherInc)})`,
+        `${S.regime==='new'?`Std deduction ₹75,000 → Taxable: ${inr(activeT.taxable)}. Slabs: 0-3L=0%, 3-7L=5%, 7-10L=10%, 10-12L=15%, 12-15L=20%, 15L+=30%`:`Deductions ${inr(activeT.deducted)} → Taxable: ${inr(activeT.taxable)}`}`,
+        `Tax + 4% Cess = <span class="calc-formula">${inr(activeT.tax)}</span>`,
+      ],
+      result: `${inr(activeT.tax)}/yr (${effRate}% effective)`
+    },
+  };
+
+  // Inject below each KPI card
+  setTimeout(()=>{
+    Object.entries(panels).forEach(([cardId, panel])=>{
+      const card = document.getElementById(cardId);
+      if(!card) return;
+      const parent = card.closest('.stat-card');
+      if(!parent || parent.querySelector('.calc-btn')) return;
+      const html = calcExplainerHTML(panel.title, panel.steps, panel.result);
+      parent.insertAdjacentHTML('beforeend', html);
+    });
+  }, 100);
+}
+
+/* ════════════════════════════════════════════════
+   FEATURE 3: MONTH-WISE TIMELINE
+════════════════════════════════════════════════ */
+function getSalaryForMonth(monthIndex){
+  // monthIndex = 0-based months from today
+  const year = Math.floor(monthIndex / 12);
+  const monthOfYear = monthIndex % 12; // 0=Jan (approx)
+  const currentMonth = new Date().getMonth(); // 0=Jan
+
+  let salary = S.gross / 12; // monthly base
+
+  if(S.salaryMode === 'annual'){
+    salary = (S.gross / 12) * Math.pow(1 + S.salIncrement/100, year);
+  } else if(S.salaryMode === 'da'){
+    // Apply DA revisions: Jan and Jul of each year
+    let factor = 1;
+    for(let y = 0; y <= year; y++){
+      const startM = y * 12;
+      const endM = Math.min((y+1)*12, monthIndex+1);
+      for(let m = startM; m < endM; m++){
+        const absMonth = (currentMonth + m) % 12;
+        if(absMonth === 0) factor *= (1 + S.daJan/100); // Jan
+        if(absMonth === 6) factor *= (1 + S.daJul/100); // Jul
+      }
+    }
+    salary = (S.gross / 12) * factor;
+  } else if(S.salaryMode === 'manual'){
+    const manualVal = S.manualSalaries[year];
+    salary = manualVal ? manualVal / 12 : (S.gross / 12) * Math.pow(1 + 5/100, year);
+  }
+  return Math.round(salary);
+}
+
+function getEventsForMonth(dateObj){
+  // Returns events matching this month/year
+  if(!S.events || !S.events.length) return [];
+  const y = dateObj.getFullYear(), m = dateObj.getMonth();
+  return S.events.filter(ev => {
+    if(!ev.date) return false;
+    const d = new Date(ev.date);
+    return d.getFullYear() === y && d.getMonth() === m;
+  });
+}
+
+function buildMonthlyProjection(){
+  const today = new Date(); today.setDate(1); today.setHours(0,0,0,0);
+  const mR = S.preRet / 100 / 12;
+  const inflM = S.inflation / 100 / 12;
+
+  let retDate;
+  if(S.retDate){ retDate = new Date(S.retDate); }
+  else {
+    retDate = new Date(today);
+    retDate.setFullYear(today.getFullYear() + (S.retAge - S.age));
+  }
+  retDate.setDate(1); retDate.setHours(0,0,0,0);
+
+  const totalMonths = Math.max(1, Math.round((retDate - today) / (30.44 * 24 * 3600 * 1000)));
+  const oneTime = S.savings + S.pf + S.ppf + S.nps + S.gratuity;
+
+  const rows = [];
+  let corpus = oneTime;
+  let baseExpense = S.expenses;
+
+  for(let mi = 0; mi < totalMonths; mi++){
+    const dateObj = new Date(today);
+    dateObj.setMonth(today.getMonth() + mi);
+
+    const sip = S.sip * Math.pow(1 + S.sipStep/100, Math.floor(mi/12));
+    const salary = getSalaryForMonth(mi);
+    const expense = Math.round(baseExpense * Math.pow(1 + inflM, mi));
+    const eventsThisMonth = getEventsForMonth(dateObj);
+    const eventImpact = eventsThisMonth.filter(e=>e.impact).reduce((sum,e)=>{
+      const sign = (e.type==='expense'||e.type==='medical') ? -1 : 1;
+      return sum + sign * e.amount;
+    }, 0);
+
+    corpus = corpus * (1 + mR) + sip + eventImpact;
+
+    rows.push({
+      date: new Date(dateObj),
+      monthIndex: mi,
+      salary, sip: Math.round(sip), corpus: Math.round(corpus),
+      expense, events: eventsThisMonth, eventImpact: Math.round(eventImpact),
+    });
+  }
+  return rows;
+}
+
+function buildPostRetProjection(corpusAtRet){
+  const rows = [];
+  const postMR = S.postRet / 100 / 12;
+  const inflM = S.inflation / 100 / 12;
+  const pension = S.pension;
+  let corpus = corpusAtRet;
+
+  let retDate;
+  if(S.retDate){ retDate = new Date(S.retDate); }
+  else {
+    const today = new Date();
+    retDate = new Date(today);
+    retDate.setFullYear(today.getFullYear() + (S.retAge - S.age));
+  }
+  retDate.setDate(1);
+
+  const totalPostMonths = (S.lifeExp - S.retAge) * 12;
+  const baseExpense = S.expenses * Math.pow(1 + S.inflation/100, S.retAge - S.age);
+
+  for(let mi = 0; mi < totalPostMonths; mi++){
+    const dateObj = new Date(retDate);
+    dateObj.setMonth(retDate.getMonth() + mi);
+    const expense = Math.round(baseExpense * Math.pow(1 + inflM, mi));
+    const income = Math.round(corpus * postMR / 12 + pension);
+    const eventsThisMonth = getEventsForMonth(dateObj);
+    const eventImpact = eventsThisMonth.filter(e=>e.impact).reduce((sum,e)=>{
+      const sign = (e.type==='expense'||e.type==='medical') ? -1 : 1;
+      return sum + sign * e.amount;
+    }, 0);
+    const net = income - expense + eventImpact;
+    corpus = Math.max(0, corpus * (1 + postMR) - expense + pension + eventImpact);
+
+    rows.push({
+      date: new Date(dateObj),
+      monthIndex: mi,
+      corpus: Math.round(corpus),
+      income, expense, net: Math.round(net),
+      events: eventsThisMonth, eventImpact: Math.round(eventImpact),
+    });
+  }
+  return rows;
+}
+
+function renderTimeline(C){
+  const page = document.getElementById('page-timeline');
+  if(!page || !page.classList.contains('active')) return;
+
+  const preRows = buildMonthlyProjection();
+  const corpusAtRet = preRows.length ? preRows[preRows.length-1].corpus : C.totalCorpus;
+  const postRows = buildPostRetProjection(corpusAtRet);
+
+  // Summary KPIs
+  const kpisEl = document.getElementById('tl-summary-kpis');
+  if(kpisEl){
+    const finalSalary = preRows.length ? preRows[preRows.length-1].salary : S.gross/12;
+    const finalCorpus = corpusAtRet;
+    const finalExpense = preRows.length ? preRows[preRows.length-1].expense : S.expenses;
+    kpisEl.innerHTML = [
+      ['Final Monthly Salary', inr(finalSalary), 'At retirement', COLORS.teal],
+      ['Corpus at Retirement', inr(finalCorpus), `After ${preRows.length} months`, COLORS.gold],
+      ['Final Monthly Expense', inr(finalExpense), `Inflation adjusted`, COLORS.rose],
+      ['Total Months Tracked', preRows.length + postRows.length, 'Pre + Post retirement', COLORS.sky],
+    ].map(([l,v,s,c])=>`<div style="background:var(--surface);border-radius:12px;padding:.8rem .9rem;border:1px solid var(--border)">
+      <div style="font-size:.6rem;color:var(--muted);margin-bottom:.2rem">${l}</div>
+      <div style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:${c}">${v}</div>
+      <div style="font-size:.62rem;color:var(--muted);margin-top:.2rem">${s}</div>
+    </div>`).join('');
+  }
+
+  // Pre-retirement table
+  const preSub = document.getElementById('tl-pre-sub');
+  if(preSub) preSub.textContent = `${preRows.length} months from today → retirement. Click a year row to expand months. Salary grows via ${S.salaryMode==='annual'?S.salIncrement+'%/yr':S.salaryMode==='da'?'DA revisions':'manual entries'}.`;
+
+  const preBody = document.getElementById('tl-body-pre');
+  if(preBody) preBody.innerHTML = buildTimelineRows(preRows, 'pre');
+
+  // Post-retirement table
+  const postSub = document.getElementById('tl-post-sub');
+  if(postSub) postSub.textContent = `${postRows.length} months post-retirement (age ${S.retAge} to ${S.lifeExp}). Corpus drawdown with ${S.postRet}% return rate.`;
+
+  const postBody = document.getElementById('tl-body-post');
+  if(postBody) postBody.innerHTML = buildTimelineRows(postRows, 'post');
+}
+
+function buildTimelineRows(rows, type){
+  if(!rows.length) return '<tr><td colspan="6" style="text-align:center;padding:1rem;color:var(--muted)">No data. Set your retirement date in Configure → Profile.</td></tr>';
+
+  // Group by year
+  const byYear = {};
+  rows.forEach(r=>{
+    const yr = r.date.getFullYear();
+    if(!byYear[yr]) byYear[yr] = [];
+    byYear[yr].push(r);
+  });
+
+  let html = '';
+  Object.entries(byYear).forEach(([yr, yrRows])=>{
+    const last = yrRows[yrRows.length-1];
+    const hasEvents = yrRows.some(r=>r.events && r.events.length);
+    const evBadge = hasEvents ? `<span class="event-badge" style="background:rgba(245,166,35,.15);color:var(--amber)">⚡</span>` : '';
+
+    if(type === 'pre'){
+      html += `<tr class="yr-row" onclick="toggleYearRows('${type}-${yr}', this)">
+        <td>${yr} — Yr ${yrRows[0].date.getFullYear() - new Date().getFullYear() + 1} ${evBadge}</td>
+        <td style="color:var(--teal)">${inr(last.salary)}</td>
+        <td style="color:var(--gold)">${inr(last.sip)}</td>
+        <td style="color:var(--mint)">${inr(last.corpus)}</td>
+        <td style="color:var(--rose)">${inr(last.expense)}</td>
+        <td>${hasEvents?`<span style="font-size:.68rem;color:var(--amber)">⚡ ${yrRows.filter(r=>r.events.length).length} events</span>`:'—'}</td>
+      </tr>`;
+      yrRows.forEach(r=>{
+        const mo = r.date.toLocaleDateString('en-IN',{month:'short',year:'numeric'});
+        const evText = r.events.length ? r.events.map(e=>`<span class="event-badge" style="background:${getEventColor(e.type)}22;color:${getEventColor(e.type)}">${getEventIcon(e.type)} ${e.desc}</span>`).join(' ') : '—';
+        html += `<tr class="mo-row" data-group="${type}-${yr}">
+          <td style="padding-left:1.5rem">${mo}</td>
+          <td>${inr(r.salary)}</td>
+          <td>${inr(r.sip)}</td>
+          <td style="color:var(--mint)">${inr(r.corpus)}</td>
+          <td>${inr(r.expense)}</td>
+          <td>${evText}</td>
+        </tr>`;
+      });
+    } else {
+      html += `<tr class="yr-row" onclick="toggleYearRows('${type}-${yr}', this)">
+        <td>${yr} — Age ${S.retAge + parseInt(yr) - yrRows[0].date.getFullYear() + (parseInt(yr) - new Date(S.retDate||new Date()).getFullYear())} ${evBadge}</td>
+        <td style="color:var(--mint)">${inr(last.corpus)}</td>
+        <td style="color:var(--teal)">${inr(last.income)}</td>
+        <td style="color:var(--rose)">${inr(last.expense)}</td>
+        <td style="color:${last.net>=0?COLORS.teal:COLORS.rose}">${last.net>=0?'+':''} ${inr(Math.abs(last.net))}</td>
+        <td>${hasEvents?`<span style="font-size:.68rem;color:var(--amber)">⚡ events</span>`:'—'}</td>
+      </tr>`;
+      yrRows.forEach(r=>{
+        const mo = r.date.toLocaleDateString('en-IN',{month:'short',year:'numeric'});
+        const evText = r.events.length ? r.events.map(e=>`<span class="event-badge" style="background:${getEventColor(e.type)}22;color:${getEventColor(e.type)}">${getEventIcon(e.type)} ${e.desc}</span>`).join(' ') : '—';
+        html += `<tr class="mo-row" data-group="${type}-${yr}">
+          <td style="padding-left:1.5rem">${mo}</td>
+          <td style="color:var(--mint)">${inr(r.corpus)}</td>
+          <td>${inr(r.income)}</td>
+          <td>${inr(r.expense)}</td>
+          <td style="color:${r.net>=0?COLORS.teal:COLORS.rose}">${r.net>=0?'+':''} ${inr(Math.abs(r.net))}</td>
+          <td>${evText}</td>
+        </tr>`;
+      });
+    }
+  });
+  return html;
+}
+
+function toggleYearRows(groupKey, trEl){
+  trEl.classList.toggle('expanded');
+  document.querySelectorAll(`tr[data-group="${groupKey}"]`).forEach(tr=>{
+    tr.classList.toggle('visible');
+  });
+}
+
+function switchTlTab(tab, btn){
+  document.querySelectorAll('#page-timeline .tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tl-tab-pills .tab-pill').forEach(p=>p.classList.remove('active'));
+  const el = document.getElementById(`tl-${tab}`);
+  if(el) el.classList.add('active');
+  if(btn) btn.classList.add('active');
+}
+
+/* ════════════════════════════════════════════════
+   FEATURE 4: MONTH-END AUTO-UPDATE
+════════════════════════════════════════════════ */
+function checkMonthUpdate(){
+  const now = new Date();
+  const currentMonthKey = `${now.getFullYear()}-${now.getMonth()}`;
+
+  if(S.lastCheckedMonth && S.lastCheckedMonth !== currentMonthKey){
+    // A new month has arrived since last visit
+    const monthName = now.toLocaleDateString('en-IN',{month:'long',year:'numeric'});
+    const C = calc();
+    const mR = S.preRet / 100 / 12;
+    const newCorpusApprox = (S.savings+S.pf+S.ppf+S.nps+S.gratuity) * (1 + mR) + S.sip;
+    const delta = newCorpusApprox - (S.savings+S.pf+S.ppf+S.nps+S.gratuity);
+    const newSalary = getSalaryForMonth(Math.round((now - new Date(now.getFullYear(), 0, 1)) / (30.44 * 24 * 3600 * 1000)));
+
+    const banner = document.getElementById('month-update-banner');
+    const monthEl = document.getElementById('banner-month-name');
+    const deltaEl = document.getElementById('banner-corpus-delta');
+    const salEl = document.getElementById('banner-new-salary');
+    const daysEl = document.getElementById('banner-days-left');
+
+    if(banner){
+      if(monthEl) monthEl.textContent = monthName;
+      if(deltaEl) deltaEl.textContent = '+' + inr(Math.round(delta));
+      if(salEl) salEl.textContent = inr(newSalary) + '/mo';
+
+      // Days to retirement
+      let retDate;
+      if(S.retDate){ retDate = new Date(S.retDate); }
+      else { retDate = new Date(); retDate.setFullYear(now.getFullYear() + (S.retAge - S.age)); }
+      const daysLeft = Math.ceil((retDate - now) / (24*3600*1000));
+      if(daysEl && daysLeft > 0) daysEl.textContent = `— ${fmt(daysLeft)} days to retirement`;
+
+      banner.classList.remove('hidden');
+    }
+    // Store pending month key
+    S._pendingMonthKey = currentMonthKey;
+  } else if(!S.lastCheckedMonth){
+    S.lastCheckedMonth = currentMonthKey;
+    saveCurrentUserState();
+  }
+}
+
+function acceptMonthUpdate(){
+  // Auto-advance the 1-time corpus by one month's growth
+  const mR = S.preRet / 100 / 12;
+  const oneTime = S.savings + S.pf + S.ppf + S.nps + S.gratuity;
+  const growth = oneTime * mR;
+  S.savings = Math.round(S.savings + growth);
+
+  // Update last checked month
+  const now = new Date();
+  S.lastCheckedMonth = `${now.getFullYear()}-${now.getMonth()}`;
+  S._pendingMonthKey = null;
+
+  dismissMonthBanner();
+  const rng = document.getElementById('si-range-savings');
+  if(rng){ rng.value = Math.min(S.savings, Number(rng.max)); updateSliderTrack('savings'); }
+  render();
+
+  // Show confirmation toast
+  showToast('✅ Plan updated for ' + now.toLocaleDateString('en-IN',{month:'long',year:'numeric'}));
+}
+
+function dismissMonthBanner(){
+  const banner = document.getElementById('month-update-banner');
+  if(banner) banner.classList.add('hidden');
+  const now = new Date();
+  S.lastCheckedMonth = `${now.getFullYear()}-${now.getMonth()}`;
+  saveCurrentUserState();
+}
+
+function showToast(msg){
+  const t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(61,214,140,.9);color:#080c12;font-weight:700;padding:.7rem 1.4rem;border-radius:20px;font-size:.78rem;z-index:99999;animation:fadeIn .3s ease';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(), 3000);
+}
+
+/* ════════════════════════════════════════════════
+   FEATURE 5: MONTHLY EXPENSES IN CONFIGURE
+════════════════════════════════════════════════ */
+function renderMonthlyExpenseProjection(C){
+  const projEl = document.getElementById('lifestyle-summary');
+  if(!projEl) return;
+  const {yrs, inflExp} = C;
+  // Append expense trajectory AFTER the base rows (already set by renderConfigSummaries)
+  const existing = projEl.innerHTML;
+  const milestones = [0, Math.ceil(yrs/4), Math.ceil(yrs/2), yrs, yrs+5, yrs+10];
+  const trajectoryHTML = `<div style="border-top:1px solid var(--border);margin-top:.7rem;padding-top:.8rem">
+    <div style="font-size:.68rem;color:var(--gold);font-weight:700;margin-bottom:.6rem">📊 Month-wise Expense Growth</div>
+    ${milestones.filter((y,i,a)=>a.indexOf(y)===i).map(y=>{
+      const exp = Math.round(S.expenses * Math.pow(1+S.inflation/100, y));
+      const label = y===0?'Today': y===yrs?'🎯 At Retirement': y<yrs?`Yr ${y} (${new Date().getFullYear()+y})`:`${y-yrs}y post-ret`;
+      const bar = Math.min(100, Math.round(exp/inflExp*100));
+      return `<div style="margin-bottom:.55rem">
+        <div style="display:flex;justify-content:space-between;margin-bottom:.22rem">
+          <span style="font-size:.7rem;color:var(--text-sub)">${label}</span>
+          <span style="font-size:.75rem;color:var(--lavender);font-weight:700">${inr(exp)}/mo</span>
+        </div>
+        <div class="prog-wrap"><div class="prog-bar" style="width:${bar}%;background:${y===yrs?COLORS.gold:COLORS.lavender}"></div></div>
+      </div>`;
+    }).join('')}
+    <div style="margin-top:.5rem">
+      ${calcExplainerHTML('Expense Formula', [
+        `Base: ${inr(S.expenses)}/mo × (1 + ${S.inflation}%)^years`,
+        `At retirement (${yrs} yrs): ${inr(S.expenses)} × (1.${S.inflation*10})^${yrs}`,
+      ], `${inr(Math.round(inflExp))}/mo at retirement`)}
+    </div>
+  </div>`;
+  projEl.innerHTML = existing + trajectoryHTML;
+}
+
+/* ════════════════════════════════════════════════
+   FEATURE 6: EVENTS REGISTER
+════════════════════════════════════════════════ */
+function getEventColor(type){
+  return {income:COLORS.teal, expense:COLORS.rose, maturity:COLORS.gold, bonus:COLORS.mint, property:COLORS.sky, medical:COLORS.rose}[type] || COLORS.amber;
+}
+function getEventIcon(type){
+  return {income:'💰', expense:'💸', maturity:'🏦', bonus:'🎁', property:'🏠', medical:'🏥'}[type] || '⚡';
+}
+
+function addEvent(){
+  const form = document.getElementById('add-event-form');
+  if(form){ form.style.display='block'; }
+  // Set default date to today
+  const di = document.getElementById('ev-date');
+  if(di && !di.value){ di.value = new Date().toISOString().split('T')[0]; }
+}
+
+function cancelAddEvent(){
+  const form = document.getElementById('add-event-form');
+  if(form) form.style.display='none';
+}
+
+function saveEvent(){
+  const date = document.getElementById('ev-date').value;
+  const type = document.getElementById('ev-type').value;
+  const desc = document.getElementById('ev-desc').value.trim();
+  const amount = parseFloat(document.getElementById('ev-amount').value);
+  const impact = document.getElementById('ev-impact').checked;
+
+  if(!date){ alert('Please select an event date.'); return; }
+  if(!desc){ alert('Please enter a description.'); return; }
+  if(!amount || amount <= 0){ alert('Please enter a valid amount.'); return; }
+
+  if(!S.events) S.events = [];
+  S.events.push({
+    id: Date.now(),
+    date, type, desc, amount: Math.round(amount), impact,
+    addedOn: new Date().toLocaleDateString('en-IN'),
+  });
+
+  cancelAddEvent();
+  renderEventsPage(calc());
+  render();
+  showToast('✅ Event saved!');
+}
+
+function removeEvent(id){
+  S.events = (S.events||[]).filter(e=>e.id!==id);
+  renderEventsPage(calc());
+  render();
+}
+
+function toggleEventImpact(id){
+  const ev = (S.events||[]).find(e=>e.id===id);
+  if(ev){ ev.impact = !ev.impact; renderEventsPage(calc()); render(); }
+}
+
+function renderEventsPage(C){
+  const page = document.getElementById('page-events');
+  if(!page) return;
+
+  const events = S.events || [];
+
+  // Summary KPIs
+  const kpisEl = document.getElementById('events-summary-kpis');
+  if(kpisEl){
+    const incomeEvents = events.filter(e=>e.type!=='expense'&&e.type!=='medical');
+    const expenseEvents = events.filter(e=>e.type==='expense'||e.type==='medical');
+    const activeEvents = events.filter(e=>e.impact);
+    const netImpact = activeEvents.reduce((sum,e)=>{
+      const sign = (e.type==='expense'||e.type==='medical') ? -1 : 1;
+      return sum + sign * e.amount;
+    }, 0);
+    kpisEl.innerHTML = [
+      ['Total Events', events.length, 'Registered', COLORS.amber],
+      ['Active (In Calc)', activeEvents.length, 'Impact ON', COLORS.mint],
+      ['Net Impact on Corpus', (netImpact>=0?'+':'')+inr(Math.abs(netImpact)), netImpact>=0?'Net addition':'Net reduction', netImpact>=0?COLORS.teal:COLORS.rose],
+    ].map(([l,v,s,c])=>`<div style="background:var(--surface);border-radius:12px;padding:.8rem .9rem;border:1px solid var(--border)">
+      <div style="font-size:.6rem;color:var(--muted);margin-bottom:.2rem">${l}</div>
+      <div style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:${c}">${v}</div>
+      <div style="font-size:.62rem;color:var(--muted);margin-top:.2rem">${s}</div>
+    </div>`).join('');
+  }
+
+  // Events list
+  const listEl = document.getElementById('events-list');
+  if(!listEl) return;
+  if(!events.length){
+    listEl.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--muted)">
+      <div style="font-size:2rem;margin-bottom:.5rem">📭</div>
+      <div style="font-size:.8rem">No events registered yet.</div>
+      <div style="font-size:.72rem;margin-top:.3rem">Click "+ Add Event" to register insurance maturities, bonuses, or unexpected expenses.</div>
+    </div>`;
+    return;
+  }
+
+  // Sort by date
+  const sorted = [...events].sort((a,b)=>new Date(a.date)-new Date(b.date));
+  listEl.innerHTML = sorted.map(ev=>{
+    const c = getEventColor(ev.type);
+    const icon = getEventIcon(ev.type);
+    const typeLabel = ev.type.charAt(0).toUpperCase()+ev.type.slice(1);
+    const isNeg = ev.type==='expense'||ev.type==='medical';
+    const daysFromNow = Math.ceil((new Date(ev.date)-new Date()) / (24*3600*1000));
+    const whenText = daysFromNow > 0 ? `in ${fmt(daysFromNow)} days` : daysFromNow < 0 ? `${fmt(-daysFromNow)} days ago` : 'today';
+    return `<div class="event-card event-type-${ev.type}">
+      <button onclick="removeEvent(${ev.id})" style="position:absolute;top:8px;right:8px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:.9rem;line-height:1">✕</button>
+      <div style="display:flex;align-items:flex-start;gap:.7rem">
+        <div style="width:36px;height:36px;border-radius:10px;background:${c}15;border:1px solid ${c}30;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0">${icon}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:.82rem;font-weight:700;color:var(--text);margin-bottom:.2rem">${ev.desc}</div>
+          <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap">
+            <span style="font-size:.65rem;background:${c}15;border:1px solid ${c}30;color:${c};padding:.1rem .45rem;border-radius:10px;font-weight:700">${typeLabel}</span>
+            <span style="font-size:.65rem;color:var(--text-sub)">📅 ${new Date(ev.date).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</span>
+            <span style="font-size:.65rem;color:var(--muted)">${whenText}</span>
+          </div>
+          <div style="font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;color:${isNeg?COLORS.rose:COLORS.mint};margin-top:.35rem">
+            ${isNeg?'- ':'+ '}${inr(ev.amount)}
+          </div>
+        </div>
+      </div>
+      <div class="event-impact-toggle">
+        <button class="toggle-switch ${ev.impact?'on':''}" onclick="toggleEventImpact(${ev.id})" title="${ev.impact?'Impact ON — click to disable':'Impact OFF — click to enable'}"></button>
+        <span class="impact-chip ${ev.impact?'impact-on':'impact-off'}">${ev.impact?'Impact ON — included in projections':'Impact OFF — not in calculations'}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ════════════════════════════════════════════════
+   SALARY MODE MANAGEMENT
+════════════════════════════════════════════════ */
+function setSalaryMode(mode){
+  S.salaryMode = mode;
+  ['annual','da','manual'].forEach(m=>{
+    const btn = document.getElementById(`sal-mode-${m}`);
+    if(btn) btn.classList.toggle('active', m===mode);
+    const sec = document.getElementById(`sal-${m}-section`);
+    if(sec) sec.style.display = m===mode ? 'block' : 'none';
+  });
+  if(mode==='manual') renderManualSalaryInputs();
+  render();
+}
+
+function renderManualSalaryInputs(){
+  const el = document.getElementById('sal-manual-list');
+  if(!el) return;
+  const yrs = Math.max(1, S.retAge - S.age);
+  if(!S.manualSalaries) S.manualSalaries={};
+  el.innerHTML = Array.from({length:yrs},(_,i)=>{
+    const yr = new Date().getFullYear() + i;
+    const val = S.manualSalaries[i] || Math.round(S.gross * Math.pow(1+0.05,i));
+    return `<div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem">
+      <span style="font-size:.72rem;color:var(--text-sub);min-width:70px">Year ${i+1} (${yr})</span>
+      <input type="number" value="${val}" min="100000" max="10000000" step="10000"
+        onchange="S.manualSalaries[${i}]=+this.value;render()"
+        style="flex:1;padding:.45rem .7rem;background:var(--surface);border:1.5px solid var(--border2);border-radius:8px;color:var(--teal);font-size:.8rem;outline:none;font-family:'DM Sans'">
+      <span style="font-size:.7rem;color:var(--muted);min-width:80px">${inr(Math.round(val/12))}/mo</span>
+    </div>`;
+  }).join('');
+}
+
 /* ════════════════════════════════
    AUTO-SAVE — every 30 seconds
 ════════════════════════════════ */
 setInterval(saveCurrentUserState, 30000);
 
-/* ── Modified Boot ── */
+/* ════════════════════════════════
+   PATCH: renderConfigSummaries to add
+   monthly expense projection (Feature 5)
+════════════════════════════════ */
+const _origRCS = renderConfigSummaries;
+const _patchedRCS = function(C){
+  _origRCS(C);
+  renderMonthlyExpenseProjection(C);
+};
+renderConfigSummaries = _patchedRCS;
+
+/* ════════════════════════════════
+   PATCH: showPage to lazy-render
+   timeline and events on first visit
+════════════════════════════════ */
+const _origShowPage = showPage;
+const _patchedShowPage = function(pageId, clickedEl){
+  _origShowPage(pageId, clickedEl);
+  if(pageId === 'timeline'){ const C=calc(); renderTimeline(C); }
+  if(pageId === 'events'){ const C=calc(); renderEventsPage(C); }
+};
+showPage = _patchedShowPage;
+
+/* ── Boot ── */
 window.addEventListener('DOMContentLoaded',()=>{
   initEmailJS();
   initSliders();
 
-  // Check for existing users
   const users = getUsers();
   if(users.length===0){
-    // First time — show onboarding
     showOnboarding();
   } else {
-    // Load active user or first user
     const activeId = getActiveUserId();
     const user = users.find(u=>u.id===activeId)||users[0];
     setActiveUserId(user.id);
     loadUserState(user);
     updateUserUI();
-    // Hide onboarding
     const ov=document.getElementById('onboarding-overlay');
     if(ov) ov.style.display='none';
-    // Re-init sliders with loaded state
     initSliders();
     render();
     showPage('dashboard', document.querySelector('[data-page="dashboard"]'));
   }
+
+  // Feature 1: Restore date inputs
+  setTimeout(()=>{
+    if(S.dob){ const d=document.getElementById('inp-dob'); if(d) d.value=S.dob; }
+    if(S.retDate){ const d=document.getElementById('inp-retdate'); if(d) d.value=S.retDate; }
+    if(S.dateMode){ const d=document.getElementById('date-mode'); if(d) d.value=S.dateMode; }
+    renderRetDateResult();
+
+    // Feature 3: Salary mode
+    if(S.salaryMode) setSalaryMode(S.salaryMode);
+
+    // Feature 6: Render events if any
+    if(S.events && S.events.length) renderEventsPage(calc());
+
+    // Feature 4: Month-end check
+    checkMonthUpdate();
+
+    // Feature 2: Attach KPI calc explainers
+    attachKpiCalcExplainers(calc());
+  }, 600);
 });
 
 </script>
