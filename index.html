@@ -538,6 +538,30 @@ button{font-family:'DM Sans',sans-serif;cursor:pointer}
 .um-switch{background:rgba(200,164,90,.1);border:1px solid rgba(200,164,90,.25);color:var(--gold);padding:.3rem .55rem;border-radius:7px;font-size:.65rem;cursor:pointer;transition:.2s}
 .um-switch:hover{background:rgba(200,164,90,.2)}
 
+/* ════ FINANCIAL CALCULATOR ════ */
+.fc-result-box{
+  background:linear-gradient(135deg,rgba(200,164,90,.08),rgba(200,164,90,.03));
+  border:1px solid rgba(200,164,90,.25);border-radius:14px;
+  padding:1.1rem 1.2rem;margin-top:.6rem;animation:fadeUp .35s ease;
+}
+.fc-result-primary{
+  font-family:'Playfair Display',serif;font-size:1.6rem;
+  font-weight:900;color:var(--gold);line-height:1;margin-bottom:.25rem;
+}
+.fc-result-label{font-size:.62rem;color:var(--text-sub);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.7rem}
+.fc-stat-row{display:flex;justify-content:space-between;align-items:center;padding:.3rem 0;border-bottom:1px dashed var(--border);font-size:.75rem}
+.fc-stat-row:last-child{border-bottom:none}
+.fc-stat-label{color:var(--text-sub)}
+.fc-stat-val{font-weight:700;color:var(--text);font-family:'Playfair Display',serif}
+.fc-bar{height:8px;border-radius:9px;margin:.45rem 0;overflow:hidden;background:var(--border)}
+.fc-bar-inner{height:100%;border-radius:9px;transition:width 1s cubic-bezier(.4,0,.2,1)}
+.fc-history-item{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:10px;padding:.55rem .85rem;margin-bottom:.4rem;
+  font-size:.72rem;display:flex;justify-content:space-between;align-items:center;gap:.5rem;
+  animation:fadeUp .25s ease;
+}
+.fc-history-type{font-size:.6rem;padding:.12rem .45rem;border-radius:12px;background:rgba(200,164,90,.15);color:var(--gold);font-weight:700;flex-shrink:0}
 </style>
 </head>
 <body>
@@ -717,6 +741,10 @@ button{font-family:'DM Sans',sans-serif;cursor:pointer}
     </a>
     <a class="nav-item" data-page="events" onclick="showPage('events',this)">
       <span class="nav-icon">⚡</span> Events Register
+      <span class="nav-badge">NEW</span>
+    </a>
+    <a class="nav-item" data-page="fincalc" onclick="showPage('fincalc',this)">
+      <span class="nav-icon">🧮</span> Fin Calculator
       <span class="nav-badge">NEW</span>
     </a>
     <div class="nav-section">Account</div>
@@ -1644,6 +1672,421 @@ button{font-family:'DM Sans',sans-serif;cursor:pointer}
     </div>
   </div>
 
+
+  <!-- ══ FINANCIAL CALCULATOR PAGE ══ -->
+  <div class="page" id="page-fincalc">
+    <div class="card card-pad mb1 fu" style="animation-delay:.05s">
+      <div class="section-header">
+        <span class="section-icon">🧮</span>
+        <span class="section-title">Financial Calculator Suite</span>
+        <span style="margin-left:auto;font-size:.65rem;color:var(--muted)">12 Calculators · India-First</span>
+      </div>
+
+      <!-- Calculator Type Tabs -->
+      <div class="tab-pills" id="fc-tabs">
+        <button class="tab-pill active" onclick="fcSwitch('emi',this)">🏠 EMI</button>
+        <button class="tab-pill" onclick="fcSwitch('fd',this)">🏦 FD</button>
+        <button class="tab-pill" onclick="fcSwitch('rd',this)">📅 RD</button>
+        <button class="tab-pill" onclick="fcSwitch('si',this)">📐 Simple Interest</button>
+        <button class="tab-pill" onclick="fcSwitch('ci',this)">📈 Compound Interest</button>
+        <button class="tab-pill" onclick="fcSwitch('annuity',this)">💰 Annuity</button>
+        <button class="tab-pill" onclick="fcSwitch('sip',this)">🔄 SIP</button>
+        <button class="tab-pill" onclick="fcSwitch('inflation',this)">📉 Inflation</button>
+        <button class="tab-pill" onclick="fcSwitch('lumpsum',this)">🎯 Lump Sum</button>
+        <button class="tab-pill" onclick="fcSwitch('rule72',this)">⚡ Rule of 72</button>
+        <button class="tab-pill" onclick="fcSwitch('cagr',this)">📊 CAGR</button>
+        <button class="tab-pill" onclick="fcSwitch('gst',this)">🧾 GST</button>
+      </div>
+
+      <!-- ── EMI Calculator ── -->
+      <div class="tab-content active" id="fc-emi">
+        <div style="font-size:.72rem;color:var(--text-sub);margin-bottom:1rem">Calculate your monthly EMI for Home Loan, Car Loan, Personal Loan etc.</div>
+        <div class="grid2 gap1" style="margin-bottom:.8rem">
+          <div>
+            <label class="date-label">Loan Amount (₹)</label>
+            <input type="number" id="emi-principal" class="date-input" placeholder="2500000" value="2500000" oninput="calcEMI()">
+          </div>
+          <div>
+            <label class="date-label">Annual Interest Rate (%)</label>
+            <input type="number" id="emi-rate" class="date-input" placeholder="8.5" value="8.5" step="0.1" oninput="calcEMI()">
+          </div>
+          <div>
+            <label class="date-label">Loan Tenure (Years)</label>
+            <input type="number" id="emi-years" class="date-input" placeholder="20" value="20" oninput="calcEMI()">
+          </div>
+          <div>
+            <label class="date-label">Compounding</label>
+            <select id="emi-comp" class="date-input" onchange="calcEMI()">
+              <option value="12">Monthly</option>
+              <option value="4">Quarterly</option>
+              <option value="2">Half-Yearly</option>
+              <option value="1">Annually</option>
+            </select>
+          </div>
+        </div>
+        <div id="emi-result" style="display:none"></div>
+        <div class="chart-wrap" style="max-height:200px;display:none" id="emi-chart-wrap"><canvas id="emi-chart"></canvas></div>
+      </div>
+
+      <!-- ── FD Calculator ── -->
+      <div class="tab-content" id="fc-fd">
+        <div style="font-size:.72rem;color:var(--text-sub);margin-bottom:1rem">Calculate maturity amount for Fixed Deposits — all compounding frequencies supported.</div>
+        <div class="grid2 gap1" style="margin-bottom:.8rem">
+          <div>
+            <label class="date-label">Principal Amount (₹)</label>
+            <input type="number" id="fd-principal" class="date-input" placeholder="100000" value="100000" oninput="calcFD()">
+          </div>
+          <div>
+            <label class="date-label">Annual Interest Rate (%)</label>
+            <input type="number" id="fd-rate" class="date-input" placeholder="7.1" value="7.1" step="0.1" oninput="calcFD()">
+          </div>
+          <div>
+            <label class="date-label">Duration (Years)</label>
+            <input type="number" id="fd-years" class="date-input" placeholder="5" value="5" step="0.5" oninput="calcFD()">
+          </div>
+          <div>
+            <label class="date-label">Compounding Frequency</label>
+            <select id="fd-comp" class="date-input" onchange="calcFD()">
+              <option value="1">Annually</option>
+              <option value="2">Half-Yearly</option>
+              <option value="4" selected>Quarterly</option>
+              <option value="12">Monthly</option>
+              <option value="0">Simple Interest</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="date-label" style="margin-bottom:.4rem;display:block">FD Type</label>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.9rem">
+            <button class="tab-pill active" onclick="this.parentNode.querySelectorAll('.tab-pill').forEach(b=>b.classList.remove('active'));this.classList.add('active');document.getElementById('fd-senior').value='0';calcFD()">Regular</button>
+            <button class="tab-pill" onclick="this.parentNode.querySelectorAll('.tab-pill').forEach(b=>b.classList.remove('active'));this.classList.add('active');document.getElementById('fd-senior').value='0.5';calcFD()">Senior Citizen (+0.5%)</button>
+            <button class="tab-pill" onclick="this.parentNode.querySelectorAll('.tab-pill').forEach(b=>b.classList.remove('active'));this.classList.add('active');document.getElementById('fd-senior').value='1';calcFD()">Tax Saver FD</button>
+          </div>
+          <input type="hidden" id="fd-senior" value="0">
+        </div>
+        <div id="fd-result" style="display:none"></div>
+      </div>
+
+      <!-- ── RD Calculator ── -->
+      <div class="tab-content" id="fc-rd">
+        <div style="font-size:.72rem;color:var(--text-sub);margin-bottom:1rem">Recurring Deposit maturity calculator — monthly deposits with quarterly compounding (Bank RD standard).</div>
+        <div class="grid2 gap1" style="margin-bottom:.8rem">
+          <div>
+            <label class="date-label">Monthly Deposit (₹)</label>
+            <input type="number" id="rd-monthly" class="date-input" placeholder="5000" value="5000" oninput="calcRD()">
+          </div>
+          <div>
+            <label class="date-label">Annual Interest Rate (%)</label>
+            <input type="number" id="rd-rate" class="date-input" placeholder="6.7" value="6.7" step="0.1" oninput="calcRD()">
+          </div>
+          <div>
+            <label class="date-label">Tenure (Months)</label>
+            <input type="number" id="rd-months" class="date-input" placeholder="24" value="24" oninput="calcRD()">
+          </div>
+          <div>
+            <label class="date-label">Compounding</label>
+            <select id="rd-comp" class="date-input" onchange="calcRD()">
+              <option value="4" selected>Quarterly (Bank Standard)</option>
+              <option value="12">Monthly</option>
+              <option value="2">Half-Yearly</option>
+              <option value="1">Annually</option>
+            </select>
+          </div>
+        </div>
+        <div id="rd-result" style="display:none"></div>
+      </div>
+
+      <!-- ── Simple Interest ── -->
+      <div class="tab-content" id="fc-si">
+        <div style="font-size:.72rem;color:var(--text-sub);margin-bottom:1rem">Simple Interest: I = P × R × T. Used in short-term loans, chit funds, and some savings schemes.</div>
+        <div class="grid2 gap1" style="margin-bottom:.8rem">
+          <div>
+            <label class="date-label">Principal (₹)</label>
+            <input type="number" id="si-p" class="date-input" placeholder="100000" value="100000" oninput="calcSI()">
+          </div>
+          <div>
+            <label class="date-label">Rate of Interest (% per annum)</label>
+            <input type="number" id="si-r" class="date-input" placeholder="8" value="8" step="0.1" oninput="calcSI()">
+          </div>
+          <div>
+            <label class="date-label">Time Period</label>
+            <input type="number" id="si-t" class="date-input" placeholder="3" value="3" step="0.5" oninput="calcSI()">
+          </div>
+          <div>
+            <label class="date-label">Time Unit</label>
+            <select id="si-unit" class="date-input" onchange="calcSI()">
+              <option value="1">Years</option>
+              <option value="0.0833">Months</option>
+              <option value="0.00274">Days</option>
+            </select>
+          </div>
+        </div>
+        <div id="si-result" style="display:none"></div>
+      </div>
+
+      <!-- ── Compound Interest ── -->
+      <div class="tab-content" id="fc-ci">
+        <div style="font-size:.72rem;color:var(--text-sub);margin-bottom:1rem">Compound Interest with flexible compounding — see how your wealth multiplies over time.</div>
+        <div class="grid2 gap1" style="margin-bottom:.8rem">
+          <div>
+            <label class="date-label">Principal (₹)</label>
+            <input type="number" id="ci-p" class="date-input" placeholder="100000" value="100000" oninput="calcCI()">
+          </div>
+          <div>
+            <label class="date-label">Annual Rate (%)</label>
+            <input type="number" id="ci-r" class="date-input" placeholder="8" value="8" step="0.1" oninput="calcCI()">
+          </div>
+          <div>
+            <label class="date-label">Time (Years)</label>
+            <input type="number" id="ci-t" class="date-input" placeholder="10" value="10" oninput="calcCI()">
+          </div>
+          <div>
+            <label class="date-label">Compounding Frequency</label>
+            <select id="ci-n" class="date-input" onchange="calcCI()">
+              <option value="1">Annually</option>
+              <option value="2">Half-Yearly</option>
+              <option value="4">Quarterly</option>
+              <option value="12" selected>Monthly</option>
+              <option value="365">Daily</option>
+            </select>
+          </div>
+        </div>
+        <div id="ci-result" style="display:none"></div>
+      </div>
+
+      <!-- ── Annuity ── -->
+      <div class="tab-content" id="fc-annuity">
+        <div style="font-size:.72rem;color:var(--text-sub);margin-bottom:1rem">Calculate Present Value, Future Value or Monthly Payment for annuities — pensions, insurance payouts, etc.</div>
+        <div style="margin-bottom:.8rem">
+          <label class="date-label">Annuity Mode</label>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.9rem">
+            <button class="tab-pill active" id="ann-mode-btn-fv" onclick="setAnnMode('fv')">Future Value (Accumulation)</button>
+            <button class="tab-pill" id="ann-mode-btn-pv" onclick="setAnnMode('pv')">Present Value (Decumulation)</button>
+            <button class="tab-pill" id="ann-mode-btn-pmt" onclick="setAnnMode('pmt')">Required Monthly Payment</button>
+          </div>
+        </div>
+        <div class="grid2 gap1" style="margin-bottom:.8rem" id="ann-inputs">
+          <div id="ann-pmt-wrap">
+            <label class="date-label">Monthly Payment (₹)</label>
+            <input type="number" id="ann-pmt" class="date-input" placeholder="10000" value="10000" oninput="calcAnnuity()">
+          </div>
+          <div id="ann-pv-wrap" style="display:none">
+            <label class="date-label">Present Value / Target Corpus (₹)</label>
+            <input type="number" id="ann-pv-inp" class="date-input" placeholder="5000000" value="5000000" oninput="calcAnnuity()">
+          </div>
+          <div id="ann-fv-wrap" style="display:none">
+            <label class="date-label">Future Value / Target (₹)</label>
+            <input type="number" id="ann-fv-inp" class="date-input" placeholder="10000000" value="10000000" oninput="calcAnnuity()">
+          </div>
+          <div>
+            <label class="date-label">Annual Rate (%)</label>
+            <input type="number" id="ann-rate" class="date-input" placeholder="6.5" value="6.5" step="0.1" oninput="calcAnnuity()">
+          </div>
+          <div>
+            <label class="date-label">Period (Years)</label>
+            <input type="number" id="ann-years" class="date-input" placeholder="20" value="20" oninput="calcAnnuity()">
+          </div>
+          <div>
+            <label class="date-label">Annuity Type</label>
+            <select id="ann-type" class="date-input" onchange="calcAnnuity()">
+              <option value="ordinary">Ordinary (End of Period)</option>
+              <option value="due">Annuity Due (Start of Period)</option>
+            </select>
+          </div>
+        </div>
+        <div id="annuity-result" style="display:none"></div>
+      </div>
+
+      <!-- ── SIP ── -->
+      <div class="tab-content" id="fc-sip">
+        <div style="font-size:.72rem;color:var(--text-sub);margin-bottom:1rem">Systematic Investment Plan — estimate corpus with step-up SIP and inflation adjustment.</div>
+        <div class="grid2 gap1" style="margin-bottom:.8rem">
+          <div>
+            <label class="date-label">Monthly SIP Amount (₹)</label>
+            <input type="number" id="sip-monthly" class="date-input" placeholder="10000" value="10000" oninput="calcSIP()">
+          </div>
+          <div>
+            <label class="date-label">Expected Annual Return (%)</label>
+            <input type="number" id="sip-return" class="date-input" placeholder="12" value="12" step="0.5" oninput="calcSIP()">
+          </div>
+          <div>
+            <label class="date-label">Investment Period (Years)</label>
+            <input type="number" id="sip-years" class="date-input" placeholder="20" value="20" oninput="calcSIP()">
+          </div>
+          <div>
+            <label class="date-label">Annual Step-Up (%)</label>
+            <input type="number" id="sip-stepup" class="date-input" placeholder="10" value="10" step="1" oninput="calcSIP()">
+          </div>
+        </div>
+        <div id="sip-result" style="display:none"></div>
+      </div>
+
+      <!-- ── Inflation ── -->
+      <div class="tab-content" id="fc-inflation">
+        <div style="font-size:.72rem;color:var(--text-sub);margin-bottom:1rem">Understand how inflation erodes purchasing power — and how much you'll need in the future for today's expenses.</div>
+        <div class="grid2 gap1" style="margin-bottom:.8rem">
+          <div>
+            <label class="date-label">Current Amount / Expense (₹)</label>
+            <input type="number" id="infl-amount" class="date-input" placeholder="50000" value="50000" oninput="calcInflation()">
+          </div>
+          <div>
+            <label class="date-label">Inflation Rate (% per annum)</label>
+            <input type="number" id="infl-rate" class="date-input" placeholder="6" value="6" step="0.5" oninput="calcInflation()">
+          </div>
+          <div>
+            <label class="date-label">Number of Years</label>
+            <input type="number" id="infl-years" class="date-input" placeholder="20" value="20" oninput="calcInflation()">
+          </div>
+          <div>
+            <label class="date-label">Mode</label>
+            <select id="infl-mode" class="date-input" onchange="calcInflation()">
+              <option value="future">Future Cost of Today's Amount</option>
+              <option value="real">Real Value of Future Amount</option>
+            </select>
+          </div>
+        </div>
+        <div id="inflation-result" style="display:none"></div>
+      </div>
+
+      <!-- ── Lump Sum ── -->
+      <div class="tab-content" id="fc-lumpsum">
+        <div style="font-size:.72rem;color:var(--text-sub);margin-bottom:1rem">One-time investment growth — how much will a lump sum grow, or how much do you need to invest today to reach a target?</div>
+        <div class="grid2 gap1" style="margin-bottom:.8rem">
+          <div>
+            <label class="date-label">Mode</label>
+            <select id="ls-mode" class="date-input" onchange="calcLumpsum()">
+              <option value="fv">Future Value (how much will I have?)</option>
+              <option value="pv">Present Value (how much to invest now?)</option>
+            </select>
+          </div>
+          <div id="ls-invest-wrap">
+            <label class="date-label">Investment Amount (₹)</label>
+            <input type="number" id="ls-invest" class="date-input" placeholder="500000" value="500000" oninput="calcLumpsum()">
+          </div>
+          <div id="ls-target-wrap" style="display:none">
+            <label class="date-label">Target Amount (₹)</label>
+            <input type="number" id="ls-target" class="date-input" placeholder="1000000" value="1000000" oninput="calcLumpsum()">
+          </div>
+          <div>
+            <label class="date-label">Annual Return (%)</label>
+            <input type="number" id="ls-rate" class="date-input" placeholder="10" value="10" step="0.5" oninput="calcLumpsum()">
+          </div>
+          <div>
+            <label class="date-label">Duration (Years)</label>
+            <input type="number" id="ls-years" class="date-input" placeholder="10" value="10" oninput="calcLumpsum()">
+          </div>
+        </div>
+        <div id="lumpsum-result" style="display:none"></div>
+      </div>
+
+      <!-- ── Rule of 72 ── -->
+      <div class="tab-content" id="fc-rule72">
+        <div style="font-size:.72rem;color:var(--text-sub);margin-bottom:1rem">The Rule of 72 estimates how long it takes to double your money at a given rate, or what rate doubles your money in a given time.</div>
+        <div class="grid2 gap1" style="margin-bottom:.8rem">
+          <div>
+            <label class="date-label">Mode</label>
+            <select id="r72-mode" class="date-input" onchange="calcRule72()">
+              <option value="time">Find Doubling Time (given Rate)</option>
+              <option value="rate">Find Required Rate (given Time)</option>
+            </select>
+          </div>
+          <div id="r72-rate-wrap">
+            <label class="date-label">Annual Return (%)</label>
+            <input type="number" id="r72-rate" class="date-input" placeholder="8" value="8" step="0.5" oninput="calcRule72()">
+          </div>
+          <div id="r72-time-wrap" style="display:none">
+            <label class="date-label">Desired Doubling Period (Years)</label>
+            <input type="number" id="r72-years" class="date-input" placeholder="9" value="9" oninput="calcRule72()">
+          </div>
+          <div>
+            <label class="date-label">Investment (₹) — for reference</label>
+            <input type="number" id="r72-invest" class="date-input" placeholder="500000" value="500000" oninput="calcRule72()">
+          </div>
+        </div>
+        <div id="rule72-result" style="display:none"></div>
+      </div>
+
+      <!-- ── CAGR ── -->
+      <div class="tab-content" id="fc-cagr">
+        <div style="font-size:.72rem;color:var(--text-sub);margin-bottom:1rem">Compound Annual Growth Rate — find the CAGR of an investment, or calculate what CAGR you need to reach a target.</div>
+        <div class="grid2 gap1" style="margin-bottom:.8rem">
+          <div>
+            <label class="date-label">Mode</label>
+            <select id="cagr-mode" class="date-input" onchange="calcCAGR()">
+              <option value="cagr">Find CAGR (given Start & End values)</option>
+              <option value="end">Find End Value (given CAGR)</option>
+            </select>
+          </div>
+          <div>
+            <label class="date-label">Starting Value / Investment (₹)</label>
+            <input type="number" id="cagr-start" class="date-input" placeholder="100000" value="100000" oninput="calcCAGR()">
+          </div>
+          <div id="cagr-end-wrap">
+            <label class="date-label">Ending Value (₹)</label>
+            <input type="number" id="cagr-end" class="date-input" placeholder="200000" value="200000" oninput="calcCAGR()">
+          </div>
+          <div id="cagr-rate-wrap" style="display:none">
+            <label class="date-label">CAGR Rate (%)</label>
+            <input type="number" id="cagr-rate" class="date-input" placeholder="12" value="12" step="0.5" oninput="calcCAGR()">
+          </div>
+          <div>
+            <label class="date-label">Period (Years)</label>
+            <input type="number" id="cagr-years" class="date-input" placeholder="7" value="7" oninput="calcCAGR()">
+          </div>
+        </div>
+        <div id="cagr-result" style="display:none"></div>
+      </div>
+
+      <!-- ── GST ── -->
+      <div class="tab-content" id="fc-gst">
+        <div style="font-size:.72rem;color:var(--text-sub);margin-bottom:1rem">GST Calculator — compute tax, inclusive/exclusive prices, CGST, SGST, IGST breakdown.</div>
+        <div class="grid2 gap1" style="margin-bottom:.8rem">
+          <div>
+            <label class="date-label">Amount (₹)</label>
+            <input type="number" id="gst-amount" class="date-input" placeholder="10000" value="10000" oninput="calcGST()">
+          </div>
+          <div>
+            <label class="date-label">GST Rate (%)</label>
+            <select id="gst-rate" class="date-input" onchange="calcGST()">
+              <option value="5">5%</option>
+              <option value="12">12%</option>
+              <option value="18" selected>18%</option>
+              <option value="28">28%</option>
+              <option value="3">3%</option>
+              <option value="0.25">0.25%</option>
+            </select>
+          </div>
+          <div>
+            <label class="date-label">Calculation Type</label>
+            <select id="gst-type" class="date-input" onchange="calcGST()">
+              <option value="exclusive">Add GST to Amount (Exclusive)</option>
+              <option value="inclusive">Extract GST from Amount (Inclusive)</option>
+            </select>
+          </div>
+          <div>
+            <label class="date-label">Transaction Type</label>
+            <select id="gst-txn" class="date-input" onchange="calcGST()">
+              <option value="intra">Intra-State (CGST + SGST)</option>
+              <option value="inter">Inter-State (IGST)</option>
+            </select>
+          </div>
+        </div>
+        <div id="gst-result" style="display:none"></div>
+      </div>
+
+    </div><!-- /card -->
+
+    <!-- Result History -->
+    <div class="card card-pad fu" style="animation-delay:.1s;margin-top:.8rem" id="fc-history-card" style="display:none">
+      <div class="section-header">
+        <span class="section-icon">📋</span>
+        <span class="section-title">Calculation History</span>
+        <button onclick="clearFcHistory()" class="btn-sm" style="margin-left:auto">Clear</button>
+      </div>
+      <div id="fc-history-list"></div>
+    </div>
+  </div><!-- /page-fincalc -->
+
 </div><!-- /main -->
 </div><!-- /app -->
 
@@ -1657,6 +2100,7 @@ button{font-family:'DM Sans',sans-serif;cursor:pointer}
     <button class="mnav-item" onclick="showPage('scenarios',this)" data-page="scenarios"><span class="mnav-icon">🔭</span>Scenarios</button>
     <button class="mnav-item" onclick="showPage('timeline',this)" data-page="timeline"><span class="mnav-icon">📅</span>Timeline</button>
     <button class="mnav-item" onclick="showPage('events',this)" data-page="events"><span class="mnav-icon">⚡</span>Events</button>
+    <button class="mnav-item" onclick="showPage('fincalc',this)" data-page="fincalc"><span class="mnav-icon">🧮</span>Calc</button>
   </div>
 </div>
 <script>
@@ -4618,6 +5062,549 @@ window.addEventListener('DOMContentLoaded',()=>{
   }, 600);
 });
 
+/* ════════════════════════════════════════════════
+   FINANCIAL CALCULATOR SUITE
+════════════════════════════════════════════════ */
+
+let fcHistory = [];
+let emiChartInst = null;
+let fcCurrentTab = 'emi';
+let annMode = 'fv';
+
+function fcSwitch(tab, btn) {
+  document.querySelectorAll('#fc-tabs .tab-pill').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  document.querySelectorAll('#page-fincalc .tab-content').forEach(t=>t.classList.remove('active'));
+  const el = document.getElementById('fc-'+tab);
+  if(el) el.classList.add('active');
+  fcCurrentTab = tab;
+  // Auto-calc on switch
+  const map = {emi:calcEMI,fd:calcFD,rd:calcRD,si:calcSI,ci:calcCI,annuity:calcAnnuity,sip:calcSIP,inflation:calcInflation,lumpsum:calcLumpsum,rule72:calcRule72,cagr:calcCAGR,gst:calcGST};
+  if(map[tab]) setTimeout(map[tab], 50);
+}
+
+function fcResultBox(id, primary, label, rows, barPct, barColor, extraHtml) {
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.style.display='block';
+  const barHtml = barPct !== null ? `
+    <div style="margin:.7rem 0 .3rem">
+      <div style="display:flex;justify-content:space-between;font-size:.62rem;color:var(--text-sub);margin-bottom:.3rem">
+        <span>Principal / Invested</span><span>Interest / Returns</span>
+      </div>
+      <div class="fc-bar">
+        <div class="fc-bar-inner" style="width:${barPct}%;background:${barColor||'var(--teal)'}"></div>
+      </div>
+    </div>` : '';
+  el.innerHTML = `
+    <div class="fc-result-box">
+      <div class="fc-result-label">${label}</div>
+      <div class="fc-result-primary">${primary}</div>
+      ${barHtml}
+      <div style="margin-top:.65rem">${rows.map(([l,v,c])=>`
+        <div class="fc-stat-row">
+          <span class="fc-stat-label">${l}</span>
+          <span class="fc-stat-val" style="color:${c||'var(--text)'}">${v}</span>
+        </div>`).join('')}
+      </div>
+      ${extraHtml||''}
+    </div>`;
+}
+
+function fcAddHistory(type, summary) {
+  fcHistory.unshift({type, summary, time: new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})});
+  if(fcHistory.length > 20) fcHistory.pop();
+  renderFcHistory();
+}
+
+function renderFcHistory() {
+  const card = document.getElementById('fc-history-card');
+  const list = document.getElementById('fc-history-list');
+  if(!list) return;
+  if(fcHistory.length === 0) { if(card) card.style.display='none'; return; }
+  if(card) card.style.display='block';
+  list.innerHTML = fcHistory.map(h=>`
+    <div class="fc-history-item">
+      <span class="fc-history-type">${h.type}</span>
+      <span style="flex:1;color:var(--text)">${h.summary}</span>
+      <span style="color:var(--muted);font-size:.62rem;flex-shrink:0">${h.time}</span>
+    </div>`).join('');
+}
+
+function clearFcHistory() { fcHistory=[]; renderFcHistory(); }
+
+function fcInr(n){ return '₹'+cr(n); }
+
+/* ── EMI ── */
+function calcEMI(){
+  const P = parseFloat(document.getElementById('emi-principal').value)||0;
+  const annualRate = parseFloat(document.getElementById('emi-rate').value)||0;
+  const years = parseFloat(document.getElementById('emi-years').value)||0;
+  const n_per_yr = parseInt(document.getElementById('emi-comp').value)||12;
+  if(!P||!annualRate||!years){ document.getElementById('emi-result').style.display='none'; return; }
+
+  const r = annualRate / 100 / n_per_yr;
+  const n = years * n_per_yr;
+  const emi = P * r * Math.pow(1+r,n) / (Math.pow(1+r,n)-1);
+  const totalPay = emi * n;
+  const totalInt = totalPay - P;
+  const barPct = Math.round((P/totalPay)*100);
+  const freq = {12:'Monthly',4:'Quarterly',2:'Half-Yearly',1:'Annual'}[n_per_yr];
+
+  fcResultBox('emi-result', fcInr(emi)+`<span style="font-size:.9rem;color:var(--text-sub)"> /${freq==='Monthly'?'mo':freq==='Quarterly'?'qtr':freq==='Half-Yearly'?'half-yr':'yr'}</span>`,
+    'EMI Payment',
+    [
+      ['Loan Amount', fcInr(P), 'var(--sky)'],
+      ['Total Interest', fcInr(totalInt), 'var(--rose)'],
+      ['Total Payment', fcInr(totalPay), 'var(--gold)'],
+      ['Interest %', (totalInt/P*100).toFixed(1)+'%', 'var(--amber)'],
+      ['Tenure', years+' Years ('+n+' payments)', 'var(--text-sub)'],
+    ], barPct, 'var(--sky)');
+
+  // Pie chart
+  const cw = document.getElementById('emi-chart-wrap');
+  if(cw){ cw.style.display='block'; renderEmiChart(P, totalInt); }
+  fcAddHistory('EMI', `Loan ${fcInr(P)} @ ${annualRate}% for ${years}yr → EMI ${fcInr(emi)}`);
+}
+
+function renderEmiChart(principal, interest) {
+  const ctx = document.getElementById('emi-chart');
+  if(!ctx) return;
+  if(emiChartInst){ emiChartInst.destroy(); emiChartInst=null; }
+  emiChartInst = new Chart(ctx,{
+    type:'doughnut',
+    data:{
+      labels:['Principal','Interest'],
+      datasets:[{data:[Math.round(principal),Math.round(interest)],backgroundColor:['#4ea8e0','#e8556a'],borderWidth:0,hoverOffset:6}]
+    },
+    options:{responsive:true,plugins:{legend:{position:'right',labels:{color:'#ccdae8',font:{size:11},padding:12}},tooltip:{callbacks:{label:i=>' '+fcInr(i.raw)}}},cutout:'62%'}
+  });
+}
+
+/* ── FD ── */
+function calcFD(){
+  const P = parseFloat(document.getElementById('fd-principal').value)||0;
+  const baseRate = parseFloat(document.getElementById('fd-rate').value)||0;
+  const bonus = parseFloat(document.getElementById('fd-senior').value)||0;
+  const r = (baseRate + bonus)/100;
+  const t = parseFloat(document.getElementById('fd-years').value)||0;
+  const n = parseInt(document.getElementById('fd-comp').value);
+  if(!P||!r||!t){ document.getElementById('fd-result').style.display='none'; return; }
+
+  let maturity, interest;
+  if(n===0){ // Simple Interest
+    interest = P*r*t;
+    maturity = P + interest;
+  } else {
+    maturity = P * Math.pow(1 + r/n, n*t);
+    interest = maturity - P;
+  }
+  const effectiveRate = (Math.pow(maturity/P, 1/t) - 1)*100;
+  const barPct = Math.round((P/maturity)*100);
+  const compLabel = {1:'Annual',2:'Half-Yearly',4:'Quarterly',12:'Monthly',0:'Simple Interest'}[n];
+
+  fcResultBox('fd-result', fcInr(maturity),
+    'FD Maturity Amount',
+    [
+      ['Principal', fcInr(P), 'var(--sky)'],
+      ['Interest Earned', fcInr(interest), 'var(--teal)'],
+      ['Interest Rate', (baseRate+bonus)+'%'+(bonus>0?` (incl. ${bonus}% extra)`:''), 'var(--amber)'],
+      ['Compounding', compLabel, 'var(--text-sub)'],
+      ['Effective Annual Yield', effectiveRate.toFixed(2)+'%', 'var(--mint)'],
+      ['Tenure', t+' Years', 'var(--text-sub)'],
+    ], barPct, 'var(--sky)');
+  fcAddHistory('FD', `${fcInr(P)} @ ${baseRate+bonus}% for ${t}yr → ${fcInr(maturity)}`);
+}
+
+/* ── RD ── */
+function calcRD(){
+  const m = parseFloat(document.getElementById('rd-monthly').value)||0;
+  const r = parseFloat(document.getElementById('rd-rate').value)||0;
+  const months = parseInt(document.getElementById('rd-months').value)||0;
+  const n = parseInt(document.getElementById('rd-comp').value)||4;
+  if(!m||!r||!months){ document.getElementById('rd-result').style.display='none'; return; }
+
+  // Standard bank RD formula: M = R × [(1+i)^n – 1] / (1-(1+i)^(-1/3))
+  // Using monthly iteration for accuracy
+  const monthlyRate = r/100/12;
+  const qRate = r/100/n;
+  let corpus = 0;
+  for(let i=1;i<=months;i++){
+    const periodsLeft = (months-i+1)/12 * n;
+    corpus += m * Math.pow(1+qRate, periodsLeft);
+  }
+  const totalDeposited = m * months;
+  const interest = corpus - totalDeposited;
+  const barPct = Math.round((totalDeposited/corpus)*100);
+
+  fcResultBox('rd-result', fcInr(corpus),
+    'RD Maturity Amount',
+    [
+      ['Monthly Deposit', fcInr(m), 'var(--sky)'],
+      ['Total Deposited', fcInr(totalDeposited), 'var(--sky)'],
+      ['Interest Earned', fcInr(interest), 'var(--teal)'],
+      ['Interest Rate', r+'%', 'var(--amber)'],
+      ['Tenure', months+' Months ('+Math.round(months/12*10)/10+' Yrs)', 'var(--text-sub)'],
+    ], barPct, 'var(--sky)');
+  fcAddHistory('RD', `${fcInr(m)}/mo @ ${r}% for ${months}mo → ${fcInr(corpus)}`);
+}
+
+/* ── Simple Interest ── */
+function calcSI(){
+  const P = parseFloat(document.getElementById('si-p').value)||0;
+  const R = parseFloat(document.getElementById('si-r').value)||0;
+  const T_raw = parseFloat(document.getElementById('si-t').value)||0;
+  const unit = parseFloat(document.getElementById('si-unit').value)||1;
+  const T = T_raw * unit;
+  if(!P||!R||!T){ document.getElementById('si-result').style.display='none'; return; }
+
+  const I = P * R/100 * T;
+  const A = P + I;
+  const unitLabel = {1:'Years',0.0833:'Months',0.00274:'Days'}[unit]||'Years';
+
+  fcResultBox('si-result', fcInr(A),
+    'Simple Interest — Total Amount',
+    [
+      ['Principal (P)', fcInr(P), 'var(--sky)'],
+      ['Interest (I = P×R×T)', fcInr(I), 'var(--teal)'],
+      ['Rate', R+'% p.a.', 'var(--amber)'],
+      ['Time', T_raw+' '+unitLabel+' = '+(T).toFixed(3)+' years', 'var(--text-sub)'],
+    ], Math.round(P/A*100), 'var(--sky)');
+  fcAddHistory('SI', `${fcInr(P)} @ ${R}% for ${T_raw} ${unitLabel} → Interest ${fcInr(I)}`);
+}
+
+/* ── Compound Interest ── */
+function calcCI(){
+  const P = parseFloat(document.getElementById('ci-p').value)||0;
+  const R = parseFloat(document.getElementById('ci-r').value)||0;
+  const T = parseFloat(document.getElementById('ci-t').value)||0;
+  const n = parseInt(document.getElementById('ci-n').value)||12;
+  if(!P||!R||!T){ document.getElementById('ci-result').style.display='none'; return; }
+
+  const A = P * Math.pow(1 + R/100/n, n*T);
+  const CI = A - P;
+  const SI = P * R/100 * T;
+  const extraVsSI = CI - SI;
+  const freq = {1:'Annual',2:'Half-Yearly',4:'Quarterly',12:'Monthly',365:'Daily'}[n];
+
+  fcResultBox('ci-result', fcInr(A),
+    'Compound Interest — Total Amount',
+    [
+      ['Principal', fcInr(P), 'var(--sky)'],
+      ['Compound Interest', fcInr(CI), 'var(--teal)'],
+      ['vs. Simple Interest', fcInr(SI)+' (CI earns extra '+fcInr(extraVsSI)+')', 'var(--amber)'],
+      ['Compounding', freq, 'var(--text-sub)'],
+      ['Effective Annual Rate', ((Math.pow(1+R/100/n,n)-1)*100).toFixed(3)+'%', 'var(--mint)'],
+    ], Math.round(P/A*100), 'var(--teal)');
+  fcAddHistory('CI', `${fcInr(P)} @ ${R}% (${freq}) for ${T}yr → ${fcInr(A)}`);
+}
+
+/* ── Annuity ── */
+let _annMode = 'fv';
+function setAnnMode(m){
+  _annMode = m;
+  ['fv','pv','pmt'].forEach(x=>{
+    const b=document.getElementById('ann-mode-btn-'+x);
+    if(b) b.classList.toggle('active', x===m);
+  });
+  document.getElementById('ann-pmt-wrap').style.display = m==='pmt'?'none':'block';
+  document.getElementById('ann-pv-wrap').style.display = m==='pv'?'block':'none';
+  document.getElementById('ann-fv-wrap').style.display = m==='fv'&&false?'block':'none';
+  calcAnnuity();
+}
+
+function calcAnnuity(){
+  const r_ann = parseFloat(document.getElementById('ann-rate').value)||0;
+  const yrs = parseFloat(document.getElementById('ann-years').value)||0;
+  const type = document.getElementById('ann-type').value;
+  const r = r_ann/100/12;
+  const n = yrs*12;
+  if(!r_ann||!yrs){ document.getElementById('annuity-result').style.display='none'; return; }
+
+  const due = type==='due' ? (1+r) : 1;
+  let primary, rows;
+
+  if(_annMode==='fv'){
+    const pmt = parseFloat(document.getElementById('ann-pmt').value)||0;
+    if(!pmt){ document.getElementById('annuity-result').style.display='none'; return; }
+    const FV = pmt * (Math.pow(1+r,n)-1)/r * due;
+    const totalPaid = pmt * n;
+    const returns = FV - totalPaid;
+    primary = fcInr(FV);
+    rows = [
+      ['Monthly Payment', fcInr(pmt), 'var(--sky)'],
+      ['Total Paid', fcInr(totalPaid), 'var(--sky)'],
+      ['Returns', fcInr(returns), 'var(--teal)'],
+      ['Wealth Ratio', (FV/totalPaid).toFixed(2)+'×', 'var(--gold)'],
+    ];
+    fcAddHistory('Annuity', `${fcInr(pmt)}/mo for ${yrs}yr @ ${r_ann}% → ${fcInr(FV)}`);
+  } else if(_annMode==='pv'){
+    const pmt = parseFloat(document.getElementById('ann-pmt').value)||0;
+    if(!pmt){ document.getElementById('annuity-result').style.display='none'; return; }
+    const PV = pmt * (1-Math.pow(1+r,-n))/r * due;
+    primary = fcInr(PV);
+    rows = [
+      ['Monthly Payment', fcInr(pmt), 'var(--sky)'],
+      ['Present Value of Stream', fcInr(PV), 'var(--gold)'],
+      ['Rate', r_ann+'% p.a.', 'var(--amber)'],
+      ['Duration', yrs+' Years', 'var(--text-sub)'],
+    ];
+    fcAddHistory('Annuity PV', `${fcInr(pmt)}/mo for ${yrs}yr @ ${r_ann}% → PV ${fcInr(PV)}`);
+  } else {
+    const pvTarget = parseFloat(document.getElementById('ann-pv-inp').value)||0;
+    if(!pvTarget){ document.getElementById('annuity-result').style.display='none'; return; }
+    const pmt = pvTarget * r / ((1-Math.pow(1+r,-n)) * due);
+    primary = fcInr(pmt)+'/mo';
+    rows = [
+      ['Target Corpus', fcInr(pvTarget), 'var(--gold)'],
+      ['Required Monthly', fcInr(pmt), 'var(--teal)'],
+      ['Total to Invest', fcInr(pmt*n), 'var(--sky)'],
+      ['Rate', r_ann+'% p.a.', 'var(--amber)'],
+    ];
+    fcAddHistory('Annuity PMT', `Target ${fcInr(pvTarget)} over ${yrs}yr @ ${r_ann}% → ${fcInr(pmt)}/mo`);
+  }
+
+  fcResultBox('annuity-result', primary, 'Annuity Result', rows, null, null);
+}
+
+/* ── SIP ── */
+function calcSIP(){
+  const monthly = parseFloat(document.getElementById('sip-monthly').value)||0;
+  const rate = parseFloat(document.getElementById('sip-return').value)||0;
+  const years = parseFloat(document.getElementById('sip-years').value)||0;
+  const stepup = parseFloat(document.getElementById('sip-stepup').value)||0;
+  if(!monthly||!rate||!years){ document.getElementById('sip-result').style.display='none'; return; }
+
+  const r = rate/100/12;
+  let corpus = 0, totalInvested = 0, m = monthly;
+  for(let yr=0;yr<years;yr++){
+    for(let mo=0;mo<12;mo++){
+      corpus = (corpus + m) * (1+r);
+      totalInvested += m;
+    }
+    m *= (1 + stepup/100);
+  }
+  const returns = corpus - totalInvested;
+  const barPct = Math.round(totalInvested/corpus*100);
+  const xirr = ((Math.pow(corpus/totalInvested, 1/years))-1)*100;
+
+  fcResultBox('sip-result', fcInr(corpus),
+    'SIP Maturity Corpus',
+    [
+      ['Monthly SIP (starting)', fcInr(monthly), 'var(--sky)'],
+      ['Total Invested', fcInr(totalInvested), 'var(--sky)'],
+      ['Returns', fcInr(returns), 'var(--teal)'],
+      ['Wealth Gain', (corpus/totalInvested).toFixed(2)+'× your investment', 'var(--gold)'],
+      ['Approx. XIRR', xirr.toFixed(2)+'%', 'var(--mint)'],
+      ['Annual Step-up', stepup+'%', 'var(--text-sub)'],
+    ], barPct, 'var(--sky)');
+  fcAddHistory('SIP', `${fcInr(monthly)}/mo (+${stepup}% step-up) @ ${rate}% for ${years}yr → ${fcInr(corpus)}`);
+}
+
+/* ── Inflation ── */
+function calcInflation(){
+  const amt = parseFloat(document.getElementById('infl-amount').value)||0;
+  const rate = parseFloat(document.getElementById('infl-rate').value)||0;
+  const years = parseFloat(document.getElementById('infl-years').value)||0;
+  const mode = document.getElementById('infl-mode').value;
+  if(!amt||!rate||!years){ document.getElementById('inflation-result').style.display='none'; return; }
+
+  const factor = Math.pow(1+rate/100, years);
+  let primary, rows;
+  if(mode==='future'){
+    const future = amt * factor;
+    primary = fcInr(future);
+    rows = [
+      ['Today\'s Value', fcInr(amt), 'var(--sky)'],
+      ['Future Cost (after '+years+' yrs)', fcInr(future), 'var(--rose)'],
+      ['Purchasing Power Loss', fcInr(future-amt)+' more needed', 'var(--rose)'],
+      ['Inflation Rate', rate+'% p.a.', 'var(--amber)'],
+      ['Purchasing Power Retained', (100/factor).toFixed(1)+'%', 'var(--teal)'],
+    ];
+    fcAddHistory('Inflation', `${fcInr(amt)} today → ${fcInr(future)} after ${years}yr @ ${rate}%`);
+  } else {
+    const real = amt / factor;
+    primary = fcInr(real);
+    rows = [
+      ['Future Amount', fcInr(amt), 'var(--sky)'],
+      ['Real Value Today', fcInr(real), 'var(--teal)'],
+      ['Inflation Eroded', fcInr(amt-real), 'var(--rose)'],
+      ['Inflation Rate', rate+'% p.a.', 'var(--amber)'],
+    ];
+    fcAddHistory('Real Value', `${fcInr(amt)} in ${years}yr = ${fcInr(real)} today @ ${rate}%`);
+  }
+  fcResultBox('inflation-result', primary, mode==='future'?'Future Cost':'Real Value Today', rows, null, null);
+}
+
+/* ── Lump Sum ── */
+function calcLumpsum(){
+  const mode = document.getElementById('ls-mode').value;
+  document.getElementById('ls-invest-wrap').style.display = mode==='fv'?'block':'none';
+  document.getElementById('ls-target-wrap').style.display = mode==='pv'?'block':'none';
+  const rate = parseFloat(document.getElementById('ls-rate').value)||0;
+  const years = parseFloat(document.getElementById('ls-years').value)||0;
+  if(!rate||!years){ document.getElementById('lumpsum-result').style.display='none'; return; }
+  const factor = Math.pow(1+rate/100, years);
+
+  if(mode==='fv'){
+    const invest = parseFloat(document.getElementById('ls-invest').value)||0;
+    if(!invest){ document.getElementById('lumpsum-result').style.display='none'; return; }
+    const fv = invest * factor;
+    fcResultBox('lumpsum-result', fcInr(fv), 'Future Value',
+      [
+        ['Investment', fcInr(invest), 'var(--sky)'],
+        ['Growth', fcInr(fv-invest)+' ('+((factor-1)*100).toFixed(1)+'%)', 'var(--teal)'],
+        ['CAGR', rate+'%', 'var(--amber)'],
+        ['Multiplier', factor.toFixed(2)+'×', 'var(--gold)'],
+      ], Math.round(invest/fv*100), 'var(--sky)');
+    fcAddHistory('Lumpsum', `${fcInr(invest)} @ ${rate}% for ${years}yr → ${fcInr(fv)}`);
+  } else {
+    const target = parseFloat(document.getElementById('ls-target').value)||0;
+    if(!target){ document.getElementById('lumpsum-result').style.display='none'; return; }
+    const pv = target / factor;
+    fcResultBox('lumpsum-result', fcInr(pv), 'Required Investment Today',
+      [
+        ['Target Amount', fcInr(target), 'var(--gold)'],
+        ['Invest Today', fcInr(pv), 'var(--teal)'],
+        ['Return', rate+'% p.a.', 'var(--amber)'],
+        ['Growth Multiple', factor.toFixed(2)+'×', 'var(--sky)'],
+      ], Math.round(pv/target*100), 'var(--teal)');
+    fcAddHistory('PV Lumpsum', `Target ${fcInr(target)} in ${years}yr @ ${rate}% → Invest ${fcInr(pv)}`);
+  }
+}
+
+/* ── Rule of 72 ── */
+function calcRule72(){
+  const mode = document.getElementById('r72-mode').value;
+  document.getElementById('r72-rate-wrap').style.display = mode==='time'?'block':'none';
+  document.getElementById('r72-time-wrap').style.display = mode==='rate'?'block':'none';
+  const invest = parseFloat(document.getElementById('r72-invest').value)||0;
+
+  if(mode==='time'){
+    const rate = parseFloat(document.getElementById('r72-rate').value)||0;
+    if(!rate){ document.getElementById('rule72-result').style.display='none'; return; }
+    const yrs72 = 72/rate;
+    const yrs69 = 69.3/rate; // More accurate
+    const actual = invest ? invest * Math.pow(2, 1/yrs72) - invest : null;
+    fcResultBox('rule72-result',
+      yrs72.toFixed(1)+' Years',
+      'Doubling Time (Rule of 72)',
+      [
+        ['Rule of 72 estimate', yrs72.toFixed(2)+' years', 'var(--gold)'],
+        ['Precise estimate (ln2/r)', yrs69.toFixed(2)+' years', 'var(--teal)'],
+        ['At rate', rate+'% p.a.', 'var(--amber)'],
+        ...(invest?[['Doubles to', fcInr(invest*2), 'var(--mint)']]:[]),
+      ], null, null,
+      `<div style="font-size:.68rem;color:var(--text-sub);margin-top:.6rem;padding:.5rem .7rem;background:rgba(200,164,90,.06);border-radius:8px">
+        💡 <strong style="color:var(--gold)">Rule of 72</strong>: Divide 72 by your annual return to estimate years to double. Quick mental math for investors.
+      </div>`);
+    fcAddHistory('Rule72', `@ ${rate}% → doubles in ~${yrs72.toFixed(1)} yrs`);
+  } else {
+    const yrs = parseFloat(document.getElementById('r72-years').value)||0;
+    if(!yrs){ document.getElementById('rule72-result').style.display='none'; return; }
+    const rate = 72/yrs;
+    fcResultBox('rule72-result',
+      rate.toFixed(2)+'% p.a.',
+      'Required Return Rate',
+      [
+        ['Doubling period', yrs+' years', 'var(--sky)'],
+        ['Required rate (Rule of 72)', rate.toFixed(2)+'%', 'var(--gold)'],
+        ['Precise rate (ln2)', (69.3/yrs).toFixed(2)+'%', 'var(--teal)'],
+        ...(invest?[['Investment doubles to', fcInr(invest*2), 'var(--mint)']]:[]),
+      ], null, null);
+    fcAddHistory('Rule72', `Double in ${yrs}yr → need ${rate.toFixed(2)}% p.a.`);
+  }
+}
+
+/* ── CAGR ── */
+function calcCAGR(){
+  const mode = document.getElementById('cagr-mode').value;
+  document.getElementById('cagr-end-wrap').style.display = mode==='cagr'?'block':'none';
+  document.getElementById('cagr-rate-wrap').style.display = mode==='end'?'block':'none';
+  const start = parseFloat(document.getElementById('cagr-start').value)||0;
+  const years = parseFloat(document.getElementById('cagr-years').value)||0;
+  if(!start||!years){ document.getElementById('cagr-result').style.display='none'; return; }
+
+  if(mode==='cagr'){
+    const end = parseFloat(document.getElementById('cagr-end').value)||0;
+    if(!end){ document.getElementById('cagr-result').style.display='none'; return; }
+    const cagr = (Math.pow(end/start, 1/years)-1)*100;
+    const absReturn = ((end-start)/start*100);
+    fcResultBox('cagr-result', cagr.toFixed(2)+'% p.a.',
+      'CAGR (Compound Annual Growth Rate)',
+      [
+        ['Start Value', fcInr(start), 'var(--sky)'],
+        ['End Value', fcInr(end), 'var(--teal)'],
+        ['Absolute Return', absReturn.toFixed(2)+'%', 'var(--amber)'],
+        ['CAGR', cagr.toFixed(3)+'%', 'var(--gold)'],
+        ['Period', years+' Years', 'var(--text-sub)'],
+      ], null, null);
+    fcAddHistory('CAGR', `${fcInr(start)} → ${fcInr(end)} in ${years}yr = CAGR ${cagr.toFixed(2)}%`);
+  } else {
+    const rate = parseFloat(document.getElementById('cagr-rate').value)||0;
+    if(!rate){ document.getElementById('cagr-result').style.display='none'; return; }
+    const end = start * Math.pow(1+rate/100, years);
+    const mult = end/start;
+    fcResultBox('cagr-result', fcInr(end),
+      'End Value at Given CAGR',
+      [
+        ['Start Value', fcInr(start), 'var(--sky)'],
+        ['CAGR', rate+'%', 'var(--amber)'],
+        ['End Value', fcInr(end), 'var(--gold)'],
+        ['Growth Multiple', mult.toFixed(2)+'×', 'var(--teal)'],
+      ], Math.round(start/end*100), 'var(--sky)');
+    fcAddHistory('CAGR Proj', `${fcInr(start)} @ ${rate}% for ${years}yr → ${fcInr(end)}`);
+  }
+}
+
+/* ── GST ── */
+function calcGST(){
+  const amt = parseFloat(document.getElementById('gst-amount').value)||0;
+  const rate = parseFloat(document.getElementById('gst-rate').value)||18;
+  const type = document.getElementById('gst-type').value;
+  const txn = document.getElementById('gst-txn').value;
+  if(!amt){ document.getElementById('gst-result').style.display='none'; return; }
+
+  let base, gstAmt, total;
+  if(type==='exclusive'){
+    base = amt;
+    gstAmt = amt * rate/100;
+    total = amt + gstAmt;
+  } else {
+    total = amt;
+    base = amt * 100/(100+rate);
+    gstAmt = total - base;
+  }
+
+  const halfGst = gstAmt/2;
+  const rows = txn==='intra'
+    ? [
+        ['Base Amount (ex-GST)', fcInr(base), 'var(--sky)'],
+        ['CGST ('+rate/2+'%)', fcInr(halfGst), 'var(--amber)'],
+        ['SGST ('+rate/2+'%)', fcInr(halfGst), 'var(--amber)'],
+        ['Total GST', fcInr(gstAmt), 'var(--rose)'],
+        ['Total Amount (incl. GST)', fcInr(total), 'var(--gold)'],
+      ]
+    : [
+        ['Base Amount (ex-GST)', fcInr(base), 'var(--sky)'],
+        ['IGST ('+rate+'%)', fcInr(gstAmt), 'var(--rose)'],
+        ['Total Amount (incl. GST)', fcInr(total), 'var(--gold)'],
+      ];
+
+  fcResultBox('gst-result', fcInr(total),
+    'GST Calculation — '+rate+'% '+( txn==='intra'?'Intra-State':'Inter-State'),
+    rows, null, null);
+  fcAddHistory('GST', `${fcInr(base)} + ${rate}% GST = ${fcInr(total)} (${txn==='intra'?'CGST+SGST':'IGST'})`);
+}
+
+/* Auto-run on page load */
+window.addEventListener('DOMContentLoaded', ()=>{
+  setTimeout(()=>{
+    calcEMI(); calcFD(); calcRD(); calcSI(); calcCI();
+    calcAnnuity(); calcSIP(); calcInflation(); calcLumpsum();
+    calcRule72(); calcCAGR(); calcGST();
+  }, 800);
+});
+
 </script>
-</body>
 </html>
