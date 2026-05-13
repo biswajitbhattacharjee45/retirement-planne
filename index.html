@@ -1730,7 +1730,21 @@ button{font-family:'DM Sans',sans-serif;cursor:pointer}
 
       <!-- ── FD Calculator ── -->
       <div class="tab-content" id="fc-fd">
-        <div style="font-size:.72rem;color:var(--text-sub);margin-bottom:1rem">Calculate maturity amount for Fixed Deposits — all compounding frequencies supported.</div>
+        <div style="font-size:.72rem;color:var(--text-sub);margin-bottom:1rem">Fixed Deposit (TDR/STDR) calculator — cumulative or non-cumulative with monthly/quarterly interest payout options.</div>
+
+        <!-- FD Scheme Type row -->
+        <div style="margin-bottom:.9rem">
+          <label class="date-label" style="margin-bottom:.4rem;display:block">FD Scheme</label>
+          <div style="display:flex;gap:.4rem;flex-wrap:wrap" id="fd-scheme-btns">
+            <button class="tab-pill active" data-scheme="cumulative" onclick="setFdScheme('cumulative',this)">📈 Cumulative (STDR)<br><span style="font-size:.6rem;font-weight:400;color:var(--text-sub)">Interest reinvested</span></button>
+            <button class="tab-pill" data-scheme="monthly" onclick="setFdScheme('monthly',this)">📅 Monthly Payout (TDR)<br><span style="font-size:.6rem;font-weight:400;color:var(--text-sub)">Interest credited monthly</span></button>
+            <button class="tab-pill" data-scheme="quarterly" onclick="setFdScheme('quarterly',this)">🗓️ Quarterly Payout (TDR)<br><span style="font-size:.6rem;font-weight:400;color:var(--text-sub)">Interest credited quarterly</span></button>
+            <button class="tab-pill" data-scheme="halfyearly" onclick="setFdScheme('halfyearly',this)">📆 Half-Yearly Payout<br><span style="font-size:.6rem;font-weight:400;color:var(--text-sub)">Interest credited every 6 months</span></button>
+            <button class="tab-pill" data-scheme="annual" onclick="setFdScheme('annual',this)">📋 Annual Payout<br><span style="font-size:.6rem;font-weight:400;color:var(--text-sub)">Interest credited yearly</span></button>
+          </div>
+          <input type="hidden" id="fd-scheme" value="cumulative">
+        </div>
+
         <div class="grid2 gap1" style="margin-bottom:.8rem">
           <div>
             <label class="date-label">Principal Amount (₹)</label>
@@ -1744,27 +1758,45 @@ button{font-family:'DM Sans',sans-serif;cursor:pointer}
             <label class="date-label">Duration (Years)</label>
             <input type="number" id="fd-years" class="date-input" placeholder="5" value="5" step="0.5" oninput="calcFD()">
           </div>
-          <div>
-            <label class="date-label">Compounding Frequency</label>
+          <!-- Compounding shown only for cumulative -->
+          <div id="fd-comp-wrap">
+            <label class="date-label">Compounding (Cumulative only)</label>
             <select id="fd-comp" class="date-input" onchange="calcFD()">
               <option value="1">Annually</option>
-              <option value="2">Half-Yearly</option>
+              <option value="2">Half-Yearly (SBI/most banks)</option>
               <option value="4" selected>Quarterly</option>
               <option value="12">Monthly</option>
               <option value="0">Simple Interest</option>
             </select>
           </div>
         </div>
+
+        <!-- FD Depositor Type -->
         <div>
-          <label class="date-label" style="margin-bottom:.4rem;display:block">FD Type</label>
+          <label class="date-label" style="margin-bottom:.4rem;display:block">Depositor Type</label>
           <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.9rem">
-            <button class="tab-pill active" onclick="this.parentNode.querySelectorAll('.tab-pill').forEach(b=>b.classList.remove('active'));this.classList.add('active');document.getElementById('fd-senior').value='0';calcFD()">Regular</button>
-            <button class="tab-pill" onclick="this.parentNode.querySelectorAll('.tab-pill').forEach(b=>b.classList.remove('active'));this.classList.add('active');document.getElementById('fd-senior').value='0.5';calcFD()">Senior Citizen (+0.5%)</button>
-            <button class="tab-pill" onclick="this.parentNode.querySelectorAll('.tab-pill').forEach(b=>b.classList.remove('active'));this.classList.add('active');document.getElementById('fd-senior').value='1';calcFD()">Tax Saver FD</button>
+            <button class="tab-pill active" id="fd-type-reg" onclick="setFdType('0',this)">Regular</button>
+            <button class="tab-pill" id="fd-type-sc" onclick="setFdType('0.5',this)">Senior Citizen (+0.5%)</button>
+            <button class="tab-pill" id="fd-type-ts" onclick="setFdType('1',this)">Tax Saver FD (5yr lock-in)</button>
           </div>
           <input type="hidden" id="fd-senior" value="0">
         </div>
+
+        <!-- TDS option -->
+        <div style="display:flex;align-items:center;gap:.8rem;margin-bottom:.9rem">
+          <input type="checkbox" id="fd-tds" style="accent-color:var(--rose);width:15px;height:15px" onchange="calcFD()">
+          <label for="fd-tds" style="font-size:.76rem;color:var(--text-sub);cursor:pointer">Deduct TDS @ 10% on interest (applicable if interest &gt; ₹40,000 / ₹50,000 for senior citizens per year)</label>
+        </div>
+
         <div id="fd-result" style="display:none"></div>
+
+        <!-- Payout schedule toggle -->
+        <div id="fd-schedule-wrap" style="display:none;margin-top:.7rem">
+          <button onclick="toggleFdSchedule()" class="calc-btn" style="margin-left:0">
+            📋 View Full Payout Schedule
+          </button>
+          <div id="fd-schedule-table" style="display:none;margin-top:.7rem;max-height:260px;overflow-y:auto"></div>
+        </div>
       </div>
 
       <!-- ── RD Calculator ── -->
@@ -5182,38 +5214,178 @@ function renderEmiChart(principal, interest) {
 }
 
 /* ── FD ── */
+/* FD scheme/type helpers */
+function setFdScheme(scheme, btn){
+  document.getElementById('fd-scheme').value = scheme;
+  document.querySelectorAll('#fd-scheme-btns .tab-pill').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  // show compounding selector only for cumulative
+  const cw = document.getElementById('fd-comp-wrap');
+  if(cw) cw.style.display = scheme==='cumulative' ? 'block' : 'none';
+  calcFD();
+}
+function setFdType(val, btn){
+  document.getElementById('fd-senior').value = val;
+  ['fd-type-reg','fd-type-sc','fd-type-ts'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.classList.remove('active');
+  });
+  if(btn) btn.classList.add('active');
+  calcFD();
+}
+function toggleFdSchedule(){
+  const tbl = document.getElementById('fd-schedule-table');
+  if(!tbl) return;
+  tbl.style.display = tbl.style.display==='none' ? 'block' : 'none';
+}
+
+/* Store payout schedule globally for toggle */
+let _fdSchedule = [];
+
 function calcFD(){
   const P = parseFloat(document.getElementById('fd-principal').value)||0;
   const baseRate = parseFloat(document.getElementById('fd-rate').value)||0;
   const bonus = parseFloat(document.getElementById('fd-senior').value)||0;
-  const r = (baseRate + bonus)/100;
+  const effectiveRate = baseRate + bonus;
+  const r = effectiveRate/100;
   const t = parseFloat(document.getElementById('fd-years').value)||0;
-  const n = parseInt(document.getElementById('fd-comp').value);
+  const scheme = document.getElementById('fd-scheme').value || 'cumulative';
+  const tds = document.getElementById('fd-tds') ? document.getElementById('fd-tds').checked : false;
+  const TDS_RATE = 0.10;
   if(!P||!r||!t){ document.getElementById('fd-result').style.display='none'; return; }
 
-  let maturity, interest;
-  if(n===0){ // Simple Interest
-    interest = P*r*t;
-    maturity = P + interest;
-  } else {
-    maturity = P * Math.pow(1 + r/n, n*t);
-    interest = maturity - P;
-  }
-  const effectiveRate = (Math.pow(maturity/P, 1/t) - 1)*100;
-  const barPct = Math.round((P/maturity)*100);
-  const compLabel = {1:'Annual',2:'Half-Yearly',4:'Quarterly',12:'Monthly',0:'Simple Interest'}[n];
+  const schWrap = document.getElementById('fd-schedule-wrap');
 
-  fcResultBox('fd-result', fcInr(maturity),
-    'FD Maturity Amount',
+  /* ── CUMULATIVE (STDR): interest compounded, paid at maturity ── */
+  if(scheme === 'cumulative'){
+    const n = parseInt(document.getElementById('fd-comp').value);
+    let maturity, interest;
+    if(n===0){
+      interest = P*r*t;
+      maturity = P + interest;
+    } else {
+      maturity = P * Math.pow(1 + r/n, n*t);
+      interest = maturity - P;
+    }
+    const tdsAmt = tds ? interest * TDS_RATE : 0;
+    const netInterest = interest - tdsAmt;
+    const netMaturity = P + netInterest;
+    const eyr = (Math.pow(maturity/P, 1/t) - 1)*100;
+    const compLabel = {1:'Annual',2:'Half-Yearly (SBI std.)',4:'Quarterly',12:'Monthly',0:'Simple Interest'}[n];
+
+    if(schWrap) schWrap.style.display = 'none'; // no schedule needed for cumulative
+    _fdSchedule = [];
+
+    fcResultBox('fd-result', fcInr(netMaturity),
+      'Cumulative FD (STDR) — Maturity Amount'+(tds?' after TDS':''),
+      [
+        ['Principal', fcInr(P), 'var(--sky)'],
+        ['Gross Interest Earned', fcInr(interest), 'var(--teal)'],
+        ...(tds ? [['TDS Deducted (10%)', '– '+fcInr(tdsAmt), 'var(--rose)'],['Net Interest', fcInr(netInterest), 'var(--mint)']] : []),
+        ['Net Maturity Amount', fcInr(netMaturity), 'var(--gold)'],
+        ['Rate', effectiveRate+'%'+(bonus>0?' (incl. '+bonus+'% extra)':''), 'var(--amber)'],
+        ['Compounding', compLabel, 'var(--text-sub)'],
+        ['Effective Annual Yield', eyr.toFixed(3)+'%', 'var(--mint)'],
+        ['Tenure', t+' Years', 'var(--text-sub)'],
+      ], Math.round(P/netMaturity*100), 'var(--sky)',
+      `<div style="margin-top:.7rem;font-size:.68rem;color:var(--text-sub);background:rgba(46,196,160,.06);border:1px solid rgba(46,196,160,.2);border-radius:8px;padding:.5rem .75rem">
+        💡 <strong style="color:var(--teal)">STDR</strong> — Special Term Deposit Receipt. Interest compounds and is paid as lump sum at maturity. Best for wealth accumulation.
+      </div>`);
+    fcAddHistory('FD STDR', `${fcInr(P)} @ ${effectiveRate}% for ${t}yr → ${fcInr(netMaturity)}`);
+    return;
+  }
+
+  /* ── NON-CUMULATIVE (TDR): periodic interest payout ── */
+  // Banks calculate simple interest on principal for each payout period
+  // Actual payout = P × r × (days/365) per period; we use exact period fractions
+  const payoutFreqMap = {
+    monthly:   {n:12, label:'Monthly',   periodLabel:'Month'},
+    quarterly: {n:4,  label:'Quarterly', periodLabel:'Quarter'},
+    halfyearly:{n:2,  label:'Half-Yearly',periodLabel:'Half-Year'},
+    annual:    {n:1,  label:'Annual',     periodLabel:'Year'},
+  };
+  const freq = payoutFreqMap[scheme] || payoutFreqMap.quarterly;
+  const payoutsPerYear = freq.n;
+  const totalPeriods = Math.round(t * payoutsPerYear);
+  const interestPerPeriod = P * r / payoutsPerYear;
+  const tdsPerPeriod = tds ? interestPerPeriod * TDS_RATE : 0;
+  const netPerPeriod = interestPerPeriod - tdsPerPeriod;
+
+  const totalGross = interestPerPeriod * totalPeriods;
+  const totalTds   = tdsPerPeriod * totalPeriods;
+  const totalNet   = netPerPeriod * totalPeriods;
+
+  // Build schedule
+  _fdSchedule = [];
+  for(let i=1; i<=totalPeriods; i++){
+    const periodYears = i / payoutsPerYear;
+    const label = freq.periodLabel + ' ' + i +
+      (payoutsPerYear>=12 ? ' (Yr '+(Math.ceil(i/12))+')' :
+       payoutsPerYear===4 ? ' (Yr '+(Math.ceil(i/4))+')' :
+       payoutsPerYear===2 ? ' (Yr '+(Math.ceil(i/2))+')' : '');
+    _fdSchedule.push({
+      period: label,
+      gross: interestPerPeriod,
+      tds: tdsPerPeriod,
+      net: netPerPeriod,
+      cumNet: netPerPeriod * i,
+    });
+  }
+
+  // Show schedule section
+  if(schWrap) schWrap.style.display = 'block';
+  const tbl = document.getElementById('fd-schedule-table');
+  if(tbl){
+    tbl.innerHTML = `
+      <table style="width:100%;border-collapse:collapse;font-size:.7rem">
+        <thead>
+          <tr style="border-bottom:1px solid var(--border2)">
+            <th style="text-align:left;padding:.3rem .5rem;color:var(--text-sub);font-weight:600">Period</th>
+            <th style="text-align:right;padding:.3rem .5rem;color:var(--text-sub);font-weight:600">Gross Interest</th>
+            ${tds?`<th style="text-align:right;padding:.3rem .5rem;color:var(--rose);font-weight:600">TDS (10%)</th>`:''}
+            <th style="text-align:right;padding:.3rem .5rem;color:var(--mint);font-weight:600">Net Payout</th>
+            <th style="text-align:right;padding:.3rem .5rem;color:var(--gold);font-weight:600">Cumulative Net</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${_fdSchedule.map((row,i)=>`
+            <tr style="border-bottom:1px dashed var(--border);background:${i%2===0?'transparent':'rgba(255,255,255,.015)'}">
+              <td style="padding:.3rem .5rem;color:var(--text-sub)">${row.period}</td>
+              <td style="padding:.3rem .5rem;text-align:right;color:var(--teal)">₹${fmt(row.gross)}</td>
+              ${tds?`<td style="padding:.3rem .5rem;text-align:right;color:var(--rose)">–₹${fmt(row.tds)}</td>`:''}
+              <td style="padding:.3rem .5rem;text-align:right;color:var(--mint);font-weight:600">₹${fmt(row.net)}</td>
+              <td style="padding:.3rem .5rem;text-align:right;color:var(--gold)">₹${fmt(row.cumNet)}</td>
+            </tr>`).join('')}
+          <tr style="border-top:2px solid var(--border2);background:rgba(200,164,90,.06)">
+            <td style="padding:.4rem .5rem;font-weight:700;color:var(--text)">TOTAL</td>
+            <td style="padding:.4rem .5rem;text-align:right;font-weight:700;color:var(--teal)">₹${fmt(totalGross)}</td>
+            ${tds?`<td style="padding:.4rem .5rem;text-align:right;font-weight:700;color:var(--rose)">–₹${fmt(totalTds)}</td>`:''}
+            <td style="padding:.4rem .5rem;text-align:right;font-weight:700;color:var(--mint)">₹${fmt(totalNet)}</td>
+            <td style="padding:.4rem .5rem;text-align:right;font-weight:700;color:var(--gold)">₹${fmt(totalNet)}</td>
+          </tr>
+        </tbody>
+      </table>`;
+  }
+
+  const schemeLabel = {monthly:'Monthly Payout TDR',quarterly:'Quarterly Payout TDR',halfyearly:'Half-Yearly Payout TDR',annual:'Annual Payout TDR'}[scheme];
+
+  fcResultBox('fd-result', fcInr(netPerPeriod)+`<span style="font-size:.9rem;color:var(--text-sub)"> /${freq.periodLabel.toLowerCase()}</span>`,
+    schemeLabel+' — '+(tds?'Net':'Gross')+' Payout per '+freq.periodLabel,
     [
-      ['Principal', fcInr(P), 'var(--sky)'],
-      ['Interest Earned', fcInr(interest), 'var(--teal)'],
-      ['Interest Rate', (baseRate+bonus)+'%'+(bonus>0?` (incl. ${bonus}% extra)`:''), 'var(--amber)'],
-      ['Compounding', compLabel, 'var(--text-sub)'],
-      ['Effective Annual Yield', effectiveRate.toFixed(2)+'%', 'var(--mint)'],
-      ['Tenure', t+' Years', 'var(--text-sub)'],
-    ], barPct, 'var(--sky)');
-  fcAddHistory('FD', `${fcInr(P)} @ ${baseRate+bonus}% for ${t}yr → ${fcInr(maturity)}`);
+      ['Principal (returned at maturity)', fcInr(P), 'var(--sky)'],
+      ['Gross Interest per '+freq.periodLabel, fcInr(interestPerPeriod), 'var(--teal)'],
+      ...(tds ? [['TDS per period (10%)', '– '+fcInr(tdsPerPeriod), 'var(--rose)'],['Net per period', fcInr(netPerPeriod), 'var(--mint)']] : []),
+      ['Annual Income (net)', fcInr(netPerPeriod * payoutsPerYear), 'var(--gold)'],
+      ['Total Interest over tenure', fcInr(totalNet)+(tds?' (net)':' (gross)'), 'var(--amber)'],
+      ['Payout frequency', freq.label, 'var(--text-sub)'],
+      ['Total payouts', totalPeriods+' payments', 'var(--text-sub)'],
+      ['Interest Rate', effectiveRate+'%'+(bonus>0?' (incl. '+bonus+'% extra)':''), 'var(--text-sub)'],
+      ['Tenure', t+' Year'+(t!==1?'s':''), 'var(--text-sub)'],
+    ], null, null,
+    `<div style="margin-top:.7rem;font-size:.68rem;color:var(--text-sub);background:rgba(78,168,224,.06);border:1px solid rgba(78,168,224,.2);border-radius:8px;padding:.5rem .75rem">
+      💡 <strong style="color:var(--sky)">TDR</strong> — Term Deposit Receipt. Principal is locked; interest credited to your savings account ${freq.label.toLowerCase()}. Ideal for regular income needs.
+      ${tds?'<br>⚠️ <strong style="color:var(--rose)">TDS</strong> is deducted before credit. Submit Form 15G/15H to avoid TDS if income is below taxable limit.':''}
+    </div>`);
+  fcAddHistory('FD TDR '+freq.label, `${fcInr(P)} @ ${effectiveRate}% for ${t}yr → ${fcInr(netPerPeriod)}/${freq.periodLabel.toLowerCase()}`);
 }
 
 /* ── RD ── */
